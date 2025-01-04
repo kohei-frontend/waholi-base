@@ -4,16 +4,21 @@ import React, { useEffect, useRef } from "react";
 import maplibregl, { Map } from "maplibre-gl";
 import * as pmtiles from 'pmtiles';
 import "maplibre-gl/dist/maplibre-gl.css";
+// import { fetchPosts } from "@/app/lib/api";
 
-const PMTILES_URL =
-  "https://iasttwggkzozjnbdyfxh.supabase.co/storage/v1/object/public/geojson/australia-data.pmtiles?t=2024-12-16T10%3A23%3A56.118Z"; // PMTilesファイルのURLを設定
+const pmtilesUrl = process.env.NEXT_PUBLIC_PMTILES_URL;
 
 export default function MapComponent() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
+  // const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    if (!mapContainerRef.current) return;
+    // const loadPosts = async () => {
+    //   const data = await fetchPosts();
+    //   setPosts(data);
+    // };
+    // loadPosts();
 
     // PMTilesプロトコルを登録
     const protocol = new pmtiles.Protocol();
@@ -21,7 +26,7 @@ export default function MapComponent() {
 
     // Maplibre-GLのインスタンスを作成
     const map = new maplibregl.Map({
-      container: mapContainerRef.current,
+      container: mapContainerRef.current as HTMLElement, // 型アサーションを使用してnullを除外
       center: [133.7751, -25.2744], // オーストラリアの中心座標
       zoom: 4, // 初期ズームレベル
       style: {
@@ -37,7 +42,7 @@ export default function MapComponent() {
           },
             pmtiles: {
                 type: "vector",
-                url: `pmtiles://${PMTILES_URL}`,
+                url: `pmtiles://${pmtilesUrl}`,
                 attribution: "© Your Attribution Here",
             },
         },
@@ -90,6 +95,51 @@ export default function MapComponent() {
     const popup = new maplibregl.Popup({
       closeButton: false,
       closeOnClick: false
+    });
+
+    // ズームを無効化
+    map.scrollZoom.disable();
+    map.boxZoom.disable();
+    map.doubleClickZoom.disable();
+    map.touchZoomRotate.disable();
+
+    // クリックイベントでズームを制御
+    map.on('click', (e) => {
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: ['state-layer', 'lga-layer', 'suburb-layer'] // 対象のレイヤーを指定
+      });
+  
+      if (!features.length) return;
+  
+      const feature = features[0];
+      const bounds = new maplibregl.LngLatBounds();
+  
+      // フィーチャーのジオメトリがPolygonまたはMultiPolygonの場合の座標取得
+      const coordinates = feature.geometry.type === 'Polygon'
+      ? feature.geometry.coordinates[0]
+      : feature.geometry.type === 'MultiPolygon'
+      ? feature.geometry.coordinates.flat(2)
+      : [];
+
+      // フィーチャーの各座標を境界ボックスに追加
+      (coordinates as [number, number][]).forEach((coord) => {
+        bounds.extend(coord);
+      });
+      
+      if (feature.layer.id === 'state-layer') {
+          // state-layerからクリックしてlga-layerを表示する場合は境界ボックスにズーム
+          map.fitBounds(bounds, {
+            padding: 10,
+            duration: 1000
+          });
+        } else if(feature.layer.id === 'lga-layer') {
+          // lga-layerからクリックしてsuburb-layerを表示する場合はクリックされた箇所を中心にズーム
+          map.easeTo({
+            center: e.lngLat,
+            zoom: 10,
+            duration: 1000
+          });
+        } 
     });
 
     map.on('mousemove', (e) => {
