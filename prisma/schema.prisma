@@ -1,0 +1,112 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("PRISMA_DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model users {
+  id        String   @id @default(uuid()) // ユーザーの一意な識別子
+  nickname  String   // ユーザーのニックネーム
+  age       Int      // ユーザーの年齢
+  gender    String   // ユーザーの性別（例: 男性、女性、その他）
+  planType  String   @default("free") // プラン種別（無料 or プレミアム）
+  createdAt DateTime @default(now()) // レコード作成日時
+  updatedAt DateTime @updatedAt // レコード更新日時
+  deletedAt DateTime? // 削除日時（論理削除用）
+  posts     post[]
+  comments  comment[]
+  likes     like[]
+  userTenants usertenant[]
+}
+
+model tenant {
+  id        String   @id @default(uuid()) // テナントの一意な識別子
+  name      String   // テナント名
+  createdAt DateTime @default(now()) // レコード作成日時
+  updatedAt DateTime @updatedAt // レコード更新日時
+  userTenants usertenant[]
+}
+
+model usertenant {
+  id        String   @id @default(uuid()) // 関係の一意な識別子
+  userId    String
+  tenantId  String
+  isDefault Boolean  @default(false) // ユーザーのデフォルトテナントかどうか
+  createdAt DateTime @default(now()) // レコード作成日時
+  updatedAt DateTime @updatedAt // レコード更新日時
+
+  user   users   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model post {
+  id        String   @id @default(uuid()) // 投稿ID（一意な識別子）
+  userId    String
+  postType  String   // 投稿タイプ（例: Workplace, Accommodation）
+  state     String   // 所属する州
+  lga       String   // 所属する地方自治体
+  suburb    String   // 所属するサバーブ
+  createdAt DateTime @default(now()) // レコード作成日時
+  updatedAt DateTime @updatedAt // レコード更新日時
+  deletedAt DateTime? // 削除日時（論理削除用）
+
+  user           users              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workplace      postworkplace?
+  accommodation  postaccommodation?
+  comments       comment[]
+  likes          like[]
+}
+
+model postworkplace {
+  postId            String   @id // 投稿ID（外部キー）
+  wage              Float    // 時給
+  atmosphere        String[] // 職場の雰囲気（複数選択可能）
+  recommendationLevel Int     // 推薦レベル（1〜5）
+  comment           String?  // コメント（職場に関する自由記述）
+
+  post post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model postaccommodation {
+  postId            String   @id // 投稿ID（外部キー）
+  rent              Float    // 家賃（月額または週額）
+  setup             String[] // 部屋の構成（例: シングルルーム、シェアルーム）
+  recommendationLevel Int     // 推薦レベル（1〜5）
+  comment           String?  // コメント（宿泊施設に関する自由記述）
+
+  post post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model comment {
+  id        String   @id @default(uuid()) // コメントID（一意な識別子）
+  userId    String
+  postId    String
+  content   String   // コメント内容
+  createdAt DateTime @default(now()) // レコード作成日時
+  updatedAt DateTime @updatedAt // レコード更新日時
+  deletedAt DateTime? // 削除日時（論理削除用）
+
+  user users @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model like {
+  id        String   @id @default(uuid()) // いいねID（一意な識別子）
+  userId    String
+  postId    String
+  createdAt DateTime @default(now()) // レコード作成日時
+  deletedAt DateTime? // 削除日時（論理削除用）
+
+  user users @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
