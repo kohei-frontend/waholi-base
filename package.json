@@ -2,21 +2,26 @@
   "name": "waholi-base",
   "version": "0.1.0",
   "private": true,
+  "type": "commonjs",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "format:fix": "prisma format",
+    "prismaLint": "prisma validate"
   },
   "dependencies": {
     "@mantine/core": "^7.14.2",
     "@mantine/hooks": "^7.14.2",
+    "@prisma/client": "^5.22.0",
     "@types/mapbox-gl": "^3.4.1",
     "leaflet": "^1.9.4",
     "mapbox-gl": "^3.8.0",
     "maplibre-gl": "^4.7.1",
     "next": "15.0.3",
     "pmtiles": "^4.0.1",
+    "prisma": "^5.22.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-leaflet": "v5.0.0-rc.1",
@@ -33,6 +38,7 @@
     "postcss-preset-mantine": "^1.17.0",
     "postcss-simple-vars": "^7.0.1",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
   }
 }
