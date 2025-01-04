@@ -98,6 +98,32 @@ export default function MapComponent() {
       closeOnClick: false
     });
 
+    // 地図の初期化が完了した後にレイヤーを追加
+    map.once('load', function() {
+      const layers = [
+        { id: 'state-line-layer', sourceLayer: 'state' },
+        { id: 'lga-line-layer', sourceLayer: 'lga' },
+        { id: 'suburb-line-layer', sourceLayer: 'suburb' }
+      ];
+
+      layers.forEach(layer => {
+        map.addLayer({
+          'id': layer.id,
+          'type': 'line',
+          'source': "pmtiles",
+          "source-layer": layer.sourceLayer,
+          'layout': {
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          'paint': {
+            'line-color': '#000000', // 境界線の色を指定
+            'line-width': 1 // 境界線の幅を指定
+          }
+        });
+      });
+    });
+
     // ズームを無効化
     map.scrollZoom.disable();
     map.boxZoom.disable();
