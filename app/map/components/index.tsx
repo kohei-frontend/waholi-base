@@ -5,7 +5,7 @@ import maplibregl, { Map } from "maplibre-gl";
 import * as pmtiles from 'pmtiles';
 import "maplibre-gl/dist/maplibre-gl.css";
 import { fetchPosts } from "@/app/lib/api";
-import { SetPosts, MapContainerRef, MapRef, MaplibreMap, Posts, Post } from "@/app/types";
+import { SetPosts, MapContainerRef, MaplibreMap, Posts, Post } from "@/app/types";
 
 // PMTILESを環境変数で使用
 const pmtilesUrl = process.env.NEXT_PUBLIC_PMTILES_URL as string;
