@@ -10,7 +10,7 @@ import { SetPosts, MapContainerRef, MaplibreMap, Posts, Post } from "@/app/types
 // PMTILESを環境変数で使用
 const pmtilesUrl = process.env.NEXT_PUBLIC_PMTILES_URL as string;
 
-// 定数を定義
+// マップの背景色を定義
 const DEFAULT_FILL_COLOR = '#CCCCCC';
 const HIGH_POST_COUNT_COLOR = '#FF0000';
 const MEDIUM_POST_COUNT_COLOR = '#FFA500';
