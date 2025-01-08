@@ -115,13 +115,13 @@ const setupPopup = (map: MaplibreMap, posts: Posts) => {
     closeOnClick: false,
   });
 
-  map.on('mousemove', (e: { point: any; lngLat: maplibregl.LngLatLike; }) => handleMouseMove(e, map, popup, posts));
+  map.on('mousemove', (e: { point: maplibregl.Point; lngLat: maplibregl.LngLatLike; }) => handleMouseMove(e, map, popup, posts));
 
   return popup;
 };
 
 // マウス移動時の処理を行う関数
-const handleMouseMove = (e: { point: any; lngLat: maplibregl.LngLatLike; }, map: MaplibreMap, popup: maplibregl.Popup, posts: Posts) => {
+const handleMouseMove = (e: { point: maplibregl.Point; lngLat: maplibregl.LngLatLike; }, map: MaplibreMap, popup: maplibregl.Popup, posts: Posts) => {
   const features = map.queryRenderedFeatures(e.point, {
     layers: ['state-layer', 'lga-layer', 'suburb-layer']
   });
@@ -143,7 +143,7 @@ const handleMouseMove = (e: { point: any; lngLat: maplibregl.LngLatLike; }, map:
 };
 
 // フィーチャーに一致する投稿と表示名を取得する関数
-const getMatchingPostsAndDisplayName = (feature: any, posts: Posts) => {
+const getMatchingPostsAndDisplayName = (feature: maplibregl.MapGeoJSONFeature, posts: Posts) => {
   let matchingPosts: Post[] = [];
   let displayName = '';
 
@@ -200,7 +200,7 @@ const disableMapZoom = (map: MaplibreMap) => {
 
 // 地図のクリックイベントを設定する関数
 const setupMapClickEvents = (map: MaplibreMap) => {
-  map.on('click', (e: { point: any; lngLat: any; }) => {
+  map.on('click', (e: { point: maplibregl.Point, lngLat: maplibregl.LngLat }) => {
     const features = map.queryRenderedFeatures(e.point, {
       layers: ['state-layer', 'lga-layer', 'suburb-layer']
     });
