@@ -15,18 +15,21 @@ datasource db {
 }
 
 model users {
-  id          String       @id @default(uuid()) // ユーザーの一意な識別子
-  nickname    String // ユーザーのニックネーム
-  age         Int // ユーザーの年齢
-  gender      String // ユーザーの性別（例: 男性、女性、その他）
-  planType    String       @default("free") // プラン種別（無料 or プレミアム）
-  createdAt   DateTime     @default(now()) // レコード作成日時
-  updatedAt   DateTime     @updatedAt // レコード更新日時
-  deletedAt   DateTime? // 削除日時（論理削除用）
-  posts       post[]
-  comments    comment[]
-  likes       like[]
-  userTenants usertenant[]
+  id                    String         @id @default(uuid()) // ユーザーの一意な識別子
+  nickname              String // ユーザーのニックネーム
+  age                   Int // ユーザーの年齢
+  gender                String // ユーザーの性別（例: 男性、女性、その他）
+  planType              String         @default("free") // プラン種別（無料 or プレミアム）
+  profile_image         String? // プロフィール画像
+  notification_settings String? // 通知設定（例: ON/OFF）
+  createdAt             DateTime       @default(now()) // レコード作成日時
+  updatedAt             DateTime       @updatedAt // レコード更新日時
+  deletedAt             DateTime? // 削除日時（論理削除用）
+  posts                 post[]
+  comments              comment[]
+  likes                 like[]
+  userTenants           usertenant[]
+  notifications         Notification[]
 }
 
 model tenant {
