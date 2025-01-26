@@ -52,6 +52,20 @@ model usertenant {
   tenant tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
+// 通知機能
+model Notification {
+  id         String   @id @default(uuid()) // 通知ID
+  userId     String // 通知を受け取るユーザー
+  type       String // 通知タイプ（例: "comment", "like"）
+  content    String // 通知の内容
+  targetId   String // 通知の対象（例: 投稿またはコメントID）
+  targetType String // 対象のタイプ(target_type TEXT NOT NULL CHECK (target_type IN ('Post', 'Comment')),)
+  isRead     Boolean  @default(false) // 既読フラグ
+  createdAt  DateTime @default(now()) // 通知作成日時
+
+  user users @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model post {
   id        String    @id @default(uuid()) // 投稿ID（一意な識別子）
   userId    String
