@@ -35,11 +35,12 @@ const initializeMap = (mapContainerRef: MapContainerRef, mapRef: React.MutableRe
 const createMapInstance = (mapContainerRef: MapContainerRef, pmtilesUrl: string) => {
   const protocol = new pmtiles.Protocol();
   maplibregl.addProtocol("pmtiles", protocol.tile);
+  const isMobile = window.innerWidth <= 768; 
 
   return new maplibregl.Map({
     container: mapContainerRef.current as HTMLElement,
     center: [133.7751, -25.2744],
-    zoom: 4,
+    zoom: isMobile ? 3 : 4, // モバイルの場合はズームレベルを変更
     style: createMapStyle(pmtilesUrl) as maplibregl.StyleSpecification,
   });
 };
@@ -220,18 +221,22 @@ const setupMapClickEvents = (map: MaplibreMap) => {
       bounds.extend(coord);
     });
 
+    const isMobile = window.innerWidth <= 768; 
+
     if (feature.layer.id === 'state-layer') {
-      map.fitBounds(bounds, {
-        padding: 10,
+      map.easeTo({
+        center: e.lngLat,
+        zoom: isMobile ? 8 : 7, // モバイルの場合はズームレベルを変更
         duration: 1000
       });
     } else if (feature.layer.id === 'lga-layer') {
       map.easeTo({
         center: e.lngLat,
-        zoom: 10,
+        zoom: isMobile ? 10 : 10, // モバイルの場合はズームレベルを変更
         duration: 1000
       });
     }
+
   });
 };
 
