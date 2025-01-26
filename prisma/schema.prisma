@@ -90,6 +90,7 @@ model postworkplace {
   atmosphere          String[] // 職場の雰囲気（複数選択可能）
   recommendationLevel Int // 推薦レベル（1〜5）
   comment             String? // コメント（職場に関する自由記述）
+  urls                String[] // 画像URLの配列
 
   post post @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
@@ -100,6 +101,7 @@ model postaccommodation {
   setup               String[] // 部屋の構成（例: シングルルーム、シェアルーム）
   recommendationLevel Int // 推薦レベル（1〜5）
   comment             String? // コメント（宿泊施設に関する自由記述）
+  urls                String[] // 画像URLの配列
 
   post post @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
