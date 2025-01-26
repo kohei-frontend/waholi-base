@@ -326,6 +326,31 @@ export default function MapComponent() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
   const [posts, setPosts] = useState<Posts>([]);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const [currentLayer, setCurrentLayer] = useState<string>('州'); // 初期状態を'州'に設定
+
+
+  const resetToInitialLayer = () => {
+    if (!mapRef.current) return;
+
+    const map = mapRef.current;
+
+    // レイヤーの表示をリセット
+    map.setLayoutProperty('state-layer', 'visibility', 'visible');
+    map.setLayoutProperty('lga-layer', 'visibility', 'none');
+    map.setLayoutProperty('suburb-layer', 'visibility', 'none');
+
+    // ズームと中心を初期状態に戻す
+    const isMobile = window.innerWidth <= 768;
+    map.easeTo({
+      center: [133.7751, -25.2744], // 初期の中心座標
+      zoom: isMobile ? 3 : 4, // 初期のズームレベル
+      duration: 1000
+    });
+
+    // 現在のレイヤーを初期状態に設定
+    setCurrentLayer('州');
+  };
 
   useEffect(() => {
     // 投稿データをロードする
@@ -343,6 +368,8 @@ export default function MapComponent() {
       addLayersToMap(map);
       disableMapZoom(map);
       setupMapClickEvents(map);
+      // 初期状態のレイヤーを表示
+      setCurrentLayer('州');
     };
 
     map.once('load', handleMapLoad);
@@ -369,6 +396,21 @@ export default function MapComponent() {
     const handleClick = (e: { point: maplibregl.PointLike }) => {
       toggleLayerVisibility(map, e);
       updateLayerColors();
+
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: ['state-layer', 'lga-layer', 'suburb-layer']
+      });
+
+      if (features.length > 0) {
+        const feature = features[0];
+        if (feature.layer.id === 'state-layer') {
+          setCurrentLayer('地方自治体');
+        } else if (feature.layer.id === 'lga-layer') {
+          setCurrentLayer('サバーブ');
+        } else if (feature.layer.id === 'suburb-layer') {
+          setCurrentLayer('サバーブ');
+        }
+      }
     };
 
     map.once('styledata', updateLayerColors);
