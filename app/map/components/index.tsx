@@ -6,6 +6,7 @@ import * as pmtiles from 'pmtiles';
 import "maplibre-gl/dist/maplibre-gl.css";
 import { fetchPosts } from "@/app/lib/api";
 import { SetPosts, MapContainerRef, MaplibreMap, Posts, Post } from "@/app/types";
+import { Button } from '@mantine/core';
 
 // PMTILESを環境変数で使用
 const pmtilesUrl = process.env.NEXT_PUBLIC_PMTILES_URL as string;
@@ -421,6 +422,71 @@ export default function MapComponent() {
       map.off('click', handleClick);
     };
   }, [posts]);
-
-  return <div ref={mapContainerRef} className="h-full w-full" />;
+  
+  return (
+    <div
+      className={`grid h-screen transition-all duration-300 ${
+        isSidebarVisible
+          ? "grid-rows-[1fr,1fr] md:grid-cols-[1fr,1fr] md:grid-rows-none"
+          : "grid-rows-[1fr] md:grid-cols-[1fr]"
+      }`}
+    >
+      {/* サイドバー（左側のコンテンツ） */}
+      {isSidebarVisible && (
+        <div className="bg-blue-100 overflow-auto relative order-2 md:order-none">
+          <button
+            onClick={() => setIsSidebarVisible(false)}
+            className="absolute top-2 right-2 bg-gray-200 rounded-full p-1 hover:bg-gray-300"
+          >
+            ＜
+          </button>
+          <div className="flex flex-col bg-blue-100 p-4 h-full">
+            <div className="flex-1">
+              {posts.length > 0 ? (
+                posts.map((post) => (
+                  <div
+                    key={post.id}
+                    className="p-2 border border-gray-300 m-1"
+                  >
+                    <h3>{post.id}</h3>
+                    <p>{post.state}</p>
+                  </div>
+                ))
+              ) : (
+                <p>データがありません。</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+  
+      {/* メインコンテンツ（右側のコンテンツ） */}
+      <div
+        className={`bg-gray-50 relative transition-all duration-300 order-1 md:order-none ${
+          isSidebarVisible ? "w-auto" : "col-span-full"
+        }`}
+      >
+        <div ref={mapContainerRef} className="h-full w-full relative">
+          {!isSidebarVisible && (
+            <button
+              onClick={() => setIsSidebarVisible(true)}
+              className="absolute top-2 left-2 bg-gray-200 rounded-full p-2 hover:bg-gray-300 flex items-center z-10"
+            >
+              ＞ Show list
+            </button>
+          )}
+          {currentLayer && (
+            <Button
+              className="absolute bottom-2 right-2"
+              variant="filled"
+              style={{ zIndex: 1000 }} // z-indexを高く設定
+              onClick={resetToInitialLayer} // ボタンをクリックしたときにリセット
+            >
+              現在のレイヤー: {currentLayer}✖
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
