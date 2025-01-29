@@ -452,7 +452,7 @@ export default function MapComponent() {
           >
             ＜
           </button>
-          {/* <div className="flex flex-col bg-blue-100 p-4 h-full">
+          <div className="flex flex-col bg-blue-100 p-4 h-full">
             <div className="flex-1">
               {filteredPosts.length > 0 ? (
                 filteredPosts.map((post) => (
@@ -470,7 +470,7 @@ export default function MapComponent() {
                 <p>データがありません。</p>
               )}
             </div>
-          </div> */}
+          </div>
           <ContentsCard /> 
         </div>
       )}
