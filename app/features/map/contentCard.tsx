@@ -3,7 +3,7 @@
 import { fetchpost } from "@/app/lib/api"
 import { Card, Text, Badge, Button } from "@mantine/core"
 import Image from "next/image"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 
 export default function ContentsCard() {
 
