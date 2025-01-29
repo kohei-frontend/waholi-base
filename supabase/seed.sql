@@ -111,11 +111,19 @@ INSERT INTO post (id, "userId", "postType", state, lga, suburb, "createdAt", "up
 (99, 'user-1', 'Workplace', 'Australian Capital Territory', 'Kalamunda', 'Bonython', NOW(), NOW()),
 (100, 'user-1', 'Workplace', 'Victoria', 'Coober Pedy', 'Ngunnawal', NOW(), NOW());
 
--- postworkplaceデータを作成
-INSERT INTO postworkplace ("postId", wage, atmosphere, "recommendationLevel", comment) VALUES
-(1, 25.0, '{"Friendly","Professional"}', 4, 'Great place to work in Melbourne CBD.'),
-(2, 22.5, '{"Relaxed","Collaborative"}', 5, 'Amazing work environment in Geelong.'),
-(3, 20, '{"bad"}', 2, 'not really good.');
+INSERT INTO postworkplace ("postId", wage, atmosphere, "recommendationLevel", comment, urls) VALUES
+(1, 25.0, '{"Friendly","Professional"}', 4, 'Great place to work in Melbourne CBD.', '{"http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg", "http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/2.jpeg"}'),
+(2, 22.5, '{"Relaxed","Collaborative"}', 5, 'Amazing work environment in Geelong.', '{"http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg", "http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/2.jpeg"}'),
+(3, 20, '{"bad"}', 2, 'not really good.', '{"http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg"}'),
+(4, 23.0, '{"Dynamic","Innovative"}', 3, 'Good place with some challenges.', '{"http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg"}'),
+(5, 24.5, '{"Supportive","Friendly"}', 4, 'Nice team and environment.', '{"http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg", "http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/2.jpeg"}'),
+(6, 21.0, '{"Relaxed","Casual"}', 3, 'Decent work-life balance.', '{"http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg", "http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/2.jpeg"}'),
+(7, 26.0, '{"Professional","Efficient"}', 5, 'Highly recommend for career growth.', '{"http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg", "http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/2.jpeg"}'),
+(8, 22.0, '{"Collaborative","Friendly"}', 4, 'Great team spirit.', '{"http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg", "http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/2.jpeg"}'),
+(9, 23.5, '{"Innovative","Dynamic"}', 3, 'Challenging but rewarding.', '{"http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg"}'),
+(10, 24.0, '{"Friendly","Supportive"}', 4, 'Supportive management.', '{"http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg", "http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/2.jpeg"}'),
+(100, 25.0, '{"Professional","Efficient"}', 5, 'Excellent place to work.', '{"http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg"}');
+
 
 -- データ挿入完了メッセージ
 SELECT 'Seed data inserted successfully.' AS message;
