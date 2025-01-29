@@ -4,7 +4,7 @@ import React from 'react';
 import dynamic from 'next/dynamic';
 
 // dynamic importを使用してMapContainerをクライアントサイドでのみレンダリング
-const Map = dynamic(() => import('./components/index'), {
+const Map = dynamic(() => import('../features/map/index'), {
   ssr: false, // サーバーサイドレンダリングを無効化
 });
 

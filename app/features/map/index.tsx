@@ -7,6 +7,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { fetchPosts } from "@/app/lib/api";
 import { SetPosts, MapContainerRef, MaplibreMap, Posts, Post } from "@/app/types";
 import { Button } from '@mantine/core';
+import ContentsCard from "./contentCard";
 
 // PMTILESを環境変数で使用
 const pmtilesUrl = process.env.NEXT_PUBLIC_PMTILES_URL as string;
@@ -21,7 +22,7 @@ const LOW_POST_COUNT_COLOR = '#00FF00';
 const loadPosts = async (setPosts: SetPosts) => {
   // APIから投稿データを取得し、状態を更新する
   const data = await fetchPosts();
-  console.log("data", data);
+  // console.log("data", data);
   setPosts(data);
 };
 
@@ -133,6 +134,7 @@ const handleMouseMove = (e: { point: maplibregl.Point; lngLat: maplibregl.LngLat
   }
 
   const feature = features[0];
+  // console.log("feature", feature);
   const { matchingPosts, displayName } = getMatchingPostsAndDisplayName(feature, posts);
 
   if (matchingPosts.length > 0) {
@@ -329,6 +331,7 @@ export default function MapComponent() {
   const [posts, setPosts] = useState<Posts>([]);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [currentLayer, setCurrentLayer] = useState<string>('州'); // 初期状態を'州'に設定
+  const [filteredPosts, setFilteredPosts] = useState<Posts>([]); // フィルタされた投稿を管理する状態を追加
 
 
   const resetToInitialLayer = () => {
@@ -351,11 +354,17 @@ export default function MapComponent() {
 
     // 現在のレイヤーを初期状態に設定
     setCurrentLayer('州');
+
+    // フィルタされた投稿をリセットして全ての投稿を表示
+    setFilteredPosts(posts);
   };
 
   useEffect(() => {
     // 投稿データをロードする
-    loadPosts(setPosts);
+    loadPosts((data) => {
+      setPosts(data);
+      setFilteredPosts(data); // 初期状態で全データを表示
+    });
   }, []);
 
   useEffect(() => {
@@ -404,6 +413,9 @@ export default function MapComponent() {
 
       if (features.length > 0) {
         const feature = features[0];
+        const { matchingPosts } = getMatchingPostsAndDisplayName(feature, posts);
+        setFilteredPosts(matchingPosts); // フィルタされた投稿を状態に設定
+
         if (feature.layer.id === 'state-layer') {
           setCurrentLayer('地方自治体');
         } else if (feature.layer.id === 'lga-layer') {
@@ -440,23 +452,26 @@ export default function MapComponent() {
           >
             ＜
           </button>
-          <div className="flex flex-col bg-blue-100 p-4 h-full">
+          {/* <div className="flex flex-col bg-blue-100 p-4 h-full">
             <div className="flex-1">
-              {posts.length > 0 ? (
-                posts.map((post) => (
+              {filteredPosts.length > 0 ? (
+                filteredPosts.map((post) => (
                   <div
                     key={post.id}
                     className="p-2 border border-gray-300 m-1"
                   >
                     <h3>{post.id}</h3>
                     <p>{post.state}</p>
+                    <p>{post.lga}</p>
+                    <p>{post.suburb}</p>
                   </div>
                 ))
               ) : (
                 <p>データがありません。</p>
               )}
             </div>
-          </div>
+          </div> */}
+          <ContentsCard /> 
         </div>
       )}
   
