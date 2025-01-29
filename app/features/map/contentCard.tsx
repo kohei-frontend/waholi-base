@@ -1,13 +1,13 @@
 "use client"
 
 import { fetchpost } from "@/app/lib/api"
-import { Card, Group, Text, Badge, Button } from "@mantine/core"
+import { Card, Text, Badge, Button } from "@mantine/core"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 
 export default function ContentsCard() {
 
-    const [workplacePosts, setWorkplacePosts] = useState([])
+    // const [workplacePosts, setWorkplacePosts] = useState([])
 
     useEffect(() => {
         // async function fetchWorkplacePosts() {
