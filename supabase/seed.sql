@@ -123,6 +123,7 @@ INSERT INTO postworkplace ("postId", wage, atmosphere, "recommendationLevel", co
 (9, 23.5, '{"Innovative","Dynamic"}', 3, 'Challenging but rewarding.', '{"http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg"}'),
 (10, 24.0, '{"Friendly","Supportive"}', 4, 'Supportive management.', '{"http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg", "http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/2.jpeg"}'),
 (11, 24.0, '{"Casual"}', 3, 'Supportive management.', '{"http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg", "http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/2.jpeg"}'),
+(12, 23.0, '{"Collaborative"}', 3, 'Great team spirit.', '{"http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg", "http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/2.jpeg"}'),
 (100, 25.0, '{"Professional","Efficient"}', 5, 'Excellent place to work.', '{"http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg"}');
 
 
