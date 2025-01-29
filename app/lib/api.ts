@@ -1,3 +1,8 @@
+import { Prisma } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
 export async function fetchPosts() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     const apiKey = process.env.NEXT_PUBLIC_SUPABASE_API_KEY as string;
@@ -22,3 +27,15 @@ export async function fetchPosts() {
     }
   }
   
+export async function fetchpost() {
+  try {
+    const response = await fetch('/api/posts');
+    if (!response.ok) {
+      throw new Error('データの取得に失敗しました');
+    }
+    const data = await response.json();
+    console.log("results", data);
+  } catch (error) {
+    console.error("データの取得中にエラーが発生しました:", error);
+  }
+}
