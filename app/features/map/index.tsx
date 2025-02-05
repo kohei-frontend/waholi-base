@@ -4,8 +4,8 @@ import React, { useEffect, useRef, useState } from "react";
 import maplibregl, { Map } from "maplibre-gl";
 import * as pmtiles from 'pmtiles';
 import "maplibre-gl/dist/maplibre-gl.css";
-import { fetchPosts } from "@/app/lib/api";
-import { SetPosts, MapContainerRef, MaplibreMap, Posts, Post } from "@/app/types";
+import { fetchLocations } from "@/app/lib/api";
+import { SetLocations, MapContainerRef, MaplibreMap, Locations, Location } from "@/app/types";
 import { Button } from '@mantine/core';
 import ContentsCard from "./contentCard";
 
@@ -19,11 +19,11 @@ const MEDIUM_POST_COUNT_COLOR = '#FFA500';
 const LOW_POST_COUNT_COLOR = '#00FF00';
 
 // 投稿データをロードする関数
-const loadPosts = async (setPosts: SetPosts) => {
+const loadLocations = async (SetLocations: SetLocations) => {
   // APIから投稿データを取得し、状態を更新する
-  const data = await fetchPosts();
+  const data = await fetchLocations();
   // console.log("data", data);
-  setPosts(data);
+  SetLocations(data);
 };
 
 // 地図の初期化を行う関数
@@ -112,19 +112,19 @@ const createMapLayers = () => ([
 ]);
 
 // ポップアップを設定する関数
-const setupPopup = (map: MaplibreMap, posts: Posts) => {
+const setupPopup = (map: MaplibreMap, locations: Locations) => {
   const popup = new maplibregl.Popup({
     closeButton: false,
     closeOnClick: false,
   });
 
-  map.on('mousemove', (e: { point: maplibregl.Point; lngLat: maplibregl.LngLatLike; }) => handleMouseMove(e, map, popup, posts));
+  map.on('mousemove', (e: { point: maplibregl.Point; lngLat: maplibregl.LngLatLike; }) => handleMouseMove(e, map, popup, locations));
 
   return popup;
 };
 
 // マウス移動時の処理を行う関数
-const handleMouseMove = (e: { point: maplibregl.Point; lngLat: maplibregl.LngLatLike; }, map: MaplibreMap, popup: maplibregl.Popup, posts: Posts) => {
+const handleMouseMove = (e: { point: maplibregl.Point; lngLat: maplibregl.LngLatLike; }, map: MaplibreMap, popup: maplibregl.Popup, locations: Locations) => {
   const features = map.queryRenderedFeatures(e.point, {
     layers: ['state-layer', 'lga-layer', 'suburb-layer']
   });
@@ -135,11 +135,11 @@ const handleMouseMove = (e: { point: maplibregl.Point; lngLat: maplibregl.LngLat
 
   const feature = features[0];
   // console.log("feature", feature);
-  const { matchingPosts, displayName } = getMatchingPostsAndDisplayName(feature, posts);
+  const { matchingLocations, displayName } = getMatchingLocationsAndDisplayName(feature, locations);
 
-  if (matchingPosts.length > 0) {
+  if (matchingLocations.length > 0) {
     popup.setLngLat(e.lngLat)
-         .setHTML(`<strong>${feature.layer.id}</strong><br>${displayName}<br>Matching Posts: ${matchingPosts.length}`)
+         .setHTML(`<strong>${feature.layer.id}</strong><br>${displayName}<br>Matching Posts: ${matchingLocations.length}`)
          .addTo(map);
   } else {
     popup.remove();
@@ -147,25 +147,25 @@ const handleMouseMove = (e: { point: maplibregl.Point; lngLat: maplibregl.LngLat
 };
 
 // フィーチャーに一致する投稿と表示名を取得する関数
-const getMatchingPostsAndDisplayName = (feature: maplibregl.MapGeoJSONFeature, posts: Posts) => {
-  let matchingPosts: Post[] = [];
+const getMatchingLocationsAndDisplayName = (feature: maplibregl.MapGeoJSONFeature, locations: Locations) => {
+  let matchingLocations: Location[] = [];
   let displayName = '';
 
   if (feature.layer.id === 'state-layer') {
     const stateName = feature.properties.STATE_NAME;
-    matchingPosts = posts.filter(post => post.state === stateName);
+    matchingLocations = locations.filter(location => location.state === stateName);
     displayName = stateName;
   } else if (feature.layer.id === 'lga-layer') {
     const lgaName = feature.properties.lga_name.replace(/^\["|"\]$/g, '');
-    matchingPosts = posts.filter(post => post.lga === lgaName);
+    matchingLocations = locations.filter(location => location.lga === lgaName);
     displayName = lgaName;
   } else if (feature.layer.id === 'suburb-layer') {
     const suburbName = feature.properties.suburb;
-    matchingPosts = posts.filter(post => post.suburb === suburbName);
+    matchingLocations = locations.filter(location => location.suburb === suburbName);
     displayName = suburbName;
   }
 
-  return { matchingPosts, displayName };
+  return { matchingLocations, displayName };
 };
 
 // 地図にレイヤーを追加する関数
@@ -244,15 +244,15 @@ const setupMapClickEvents = (map: MaplibreMap) => {
 };
 
 // レイヤーの色を更新する関数
-const updateMapLayerColors = (map: MaplibreMap, posts: Posts) => {
-  const getColorByPosts = (name: string, type: keyof Post) => {
-    const postCount = posts.filter(post => post[type] === name).length;
-    return postCount > 40 ? HIGH_POST_COUNT_COLOR : postCount > 8 ? MEDIUM_POST_COUNT_COLOR : postCount > 0 ? LOW_POST_COUNT_COLOR : DEFAULT_FILL_COLOR;
+const updateMapLayerColors = (map: MaplibreMap, locations: Locations) => {
+  const getColorByPosts = (name: string, type: keyof Location) => {
+    const locationCount = locations.filter(location => location[type] === name).length;
+    return locationCount > 40 ? HIGH_POST_COUNT_COLOR : locationCount > 8 ? MEDIUM_POST_COUNT_COLOR : locationCount > 0 ? LOW_POST_COUNT_COLOR : DEFAULT_FILL_COLOR;
   };
 
-  const createColorMapping = (layerType: keyof Post, formatFn?: (name: string) => string) => {
-    return posts.reduce((acc: string[], post) => {
-      let name = post[layerType] as string;
+  const createColorMapping = (layerType: keyof Location, formatFn?: (name: string) => string) => {
+    return locations.reduce((acc: string[], location) => {
+      let name = location[layerType] as string;
       if (formatFn) {
         name = formatFn(name);
       }
@@ -328,10 +328,10 @@ const toggleLayerVisibility = (map: MaplibreMap, e: { point: maplibregl.PointLik
 export default function MapComponent() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
-  const [posts, setPosts] = useState<Posts>([]);
+  const [locations, setLocations] = useState<Locations>([]);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [currentLayer, setCurrentLayer] = useState<string>('州'); // 初期状態を'州'に設定
-  const [filteredPosts, setFilteredPosts] = useState<Posts>([]); // フィルタされた投稿を管理する状態を追加
+  const [filteredLocations, setFilteredLocations] = useState<Locations>([]); // フィルタされた投稿を管理する状態を追加
 
 
   const resetToInitialLayer = () => {
@@ -356,14 +356,14 @@ export default function MapComponent() {
     setCurrentLayer('州');
 
     // フィルタされた投稿をリセットして全ての投稿を表示
-    setFilteredPosts(posts);
+    setFilteredLocations(locations);
   };
 
   useEffect(() => {
     // 投稿データをロードする
-    loadPosts((data) => {
-      setPosts(data);
-      setFilteredPosts(data); // 初期状態で全データを表示
+    loadLocations((data) => {
+      setLocations(data);
+      setFilteredLocations(data); // 初期状態で全データを表示
     });
   }, []);
 
@@ -372,7 +372,7 @@ export default function MapComponent() {
 
     // 地図とポップアップを初期化する
     const map = initializeMap(mapContainerRef, mapRef, pmtilesUrl);
-    const popup = setupPopup(map, posts);
+    const popup = setupPopup(map, locations);
 
     const handleMapLoad = () => {
       addLayersToMap(map);
@@ -391,7 +391,7 @@ export default function MapComponent() {
       map.remove();
       popup.remove();
     };
-  }, [posts]);
+  }, [locations]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -400,7 +400,7 @@ export default function MapComponent() {
 
     const updateLayerColors = () => {
       // 投稿数に応じた色を更新する
-      updateMapLayerColors(map, posts);
+      updateMapLayerColors(map, locations);
     };
 
     const handleClick = (e: { point: maplibregl.PointLike }) => {
@@ -413,8 +413,8 @@ export default function MapComponent() {
 
       if (features.length > 0) {
         const feature = features[0];
-        const { matchingPosts } = getMatchingPostsAndDisplayName(feature, posts);
-        setFilteredPosts(matchingPosts); // フィルタされた投稿を状態に設定
+        const { matchingLocations } = getMatchingLocationsAndDisplayName(feature, locations);
+        setFilteredLocations(matchingLocations); // フィルタされた投稿を状態に設定
 
         if (feature.layer.id === 'state-layer') {
           setCurrentLayer('地方自治体');
@@ -433,7 +433,7 @@ export default function MapComponent() {
       // クリックイベントのリスナーを削除する
       map.off('click', handleClick);
     };
-  }, [posts]);
+  }, [locations]);
   
   return (
     <div
@@ -454,16 +454,16 @@ export default function MapComponent() {
           </button>
           <div className="flex flex-col bg-blue-100 p-4 h-full">
             <div className="flex-1">
-              {filteredPosts.length > 0 ? (
-                filteredPosts.map((post) => (
+              {filteredLocations.length > 0 ? (
+                filteredLocations.map((location) => (
                   <div
-                    key={post.id}
+                    key={location.id}
                     className="p-2 border border-gray-300 m-1"
                   >
-                    <h3>{post.id}</h3>
-                    <p>{post.state}</p>
-                    <p>{post.lga}</p>
-                    <p>{post.suburb}</p>
+                    <h3>{location.id}</h3>
+                    <p>{location.state}</p>
+                    <p>{location.lga}</p>
+                    <p>{location.suburb}</p>
                   </div>
                 ))
               ) : (
