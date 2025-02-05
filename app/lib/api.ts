@@ -1,3 +1,5 @@
+import { Location } from "@/app/types";
+
 export async function fetchPosts() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     const apiKey = process.env.NEXT_PUBLIC_SUPABASE_API_KEY as string;
@@ -22,15 +24,17 @@ export async function fetchPosts() {
     }
   }
   
-export async function fetchpost() {
+export async function fetchLocations(): Promise<Location[]> { 
   try {
     const response = await fetch('/api/posts');
     if (!response.ok) {
       throw new Error('データの取得に失敗しました');
     }
-    const data = await response.json();
+    const data = await response.json() as Location[]; 
     console.log("results", data);
+    return data;
   } catch (error) {
     console.error("データの取得中にエラーが発生しました:", error);
+    return [];
   }
 }
