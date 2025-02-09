@@ -4,8 +4,8 @@ import React, { useEffect, useRef, useState } from "react";
 import maplibregl, { Map } from "maplibre-gl";
 import * as pmtiles from 'pmtiles';
 import "maplibre-gl/dist/maplibre-gl.css";
-import { fetchLocations } from "@/app/lib/api";
-import { SetLocations, MapContainerRef, MaplibreMap, Locations, Location } from "@/app/types";
+import { fetchFacilities } from "@/app/lib/api";
+import { MapContainerRef, MaplibreMap, Facilities, Facility, SetFacilities } from "@/app/types";
 import { Button } from '@mantine/core';
 import ContentsCard from "./contentCard";
 
@@ -17,13 +17,14 @@ const DEFAULT_FILL_COLOR = '#CCCCCC';
 const HIGH_POST_COUNT_COLOR = '#FF0000';
 const MEDIUM_POST_COUNT_COLOR = '#FFA500';
 const LOW_POST_COUNT_COLOR = '#00FF00';
+const tilesUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
 // 投稿データをロードする関数
-const loadLocations = async (SetLocations: SetLocations) => {
+const loadFacilities = async (SetFacilities: SetFacilities) => {
   // APIから投稿データを取得し、状態を更新する
-  const data = await fetchLocations();
+  const data = await fetchFacilities();
   // console.log("data", data);
-  SetLocations(data);
+  SetFacilities(data);
 };
 
 // 地図の初期化を行う関数
@@ -53,7 +54,7 @@ const createMapStyle = (pmtilesUrl: string) => ({
   sources: {
     australia: {
       type: "raster",
-      tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      tiles: [tilesUrl],
       tileSize: 256,
       attribution: "© OpenStreetMap contributors",
     },
@@ -112,19 +113,19 @@ const createMapLayers = () => ([
 ]);
 
 // ポップアップを設定する関数
-const setupPopup = (map: MaplibreMap, locations: Locations) => {
+const setupPopup = (map: MaplibreMap, facilities: Facilities) => {
   const popup = new maplibregl.Popup({
     closeButton: false,
     closeOnClick: false,
   });
 
-  map.on('mousemove', (e: { point: maplibregl.Point; lngLat: maplibregl.LngLatLike; }) => handleMouseMove(e, map, popup, locations));
+  map.on('mousemove', (e: { point: maplibregl.Point; lngLat: maplibregl.LngLatLike; }) => handleMouseMove(e, map, popup, facilities));
 
   return popup;
 };
 
 // マウス移動時の処理を行う関数
-const handleMouseMove = (e: { point: maplibregl.Point; lngLat: maplibregl.LngLatLike; }, map: MaplibreMap, popup: maplibregl.Popup, locations: Locations) => {
+const handleMouseMove = (e: { point: maplibregl.Point; lngLat: maplibregl.LngLatLike; }, map: MaplibreMap, popup: maplibregl.Popup, facilities: Facilities) => {
   const features = map.queryRenderedFeatures(e.point, {
     layers: ['state-layer', 'lga-layer', 'suburb-layer']
   });
@@ -135,11 +136,11 @@ const handleMouseMove = (e: { point: maplibregl.Point; lngLat: maplibregl.LngLat
 
   const feature = features[0];
   // console.log("feature", feature);
-  const { matchingLocations, displayName } = getMatchingLocationsAndDisplayName(feature, locations);
+  const { matchingFacilities, displayName } = getMatchingFacilitiesAndDisplayName(feature, facilities);
 
-  if (matchingLocations.length > 0) {
+  if (matchingFacilities.length > 0) {
     popup.setLngLat(e.lngLat)
-         .setHTML(`<strong>${feature.layer.id}</strong><br>${displayName}<br>Matching Posts: ${matchingLocations.length}`)
+         .setHTML(`<strong>${feature.layer.id}</strong><br>${displayName}<br>Matching Posts: ${matchingFacilities.length}`)
          .addTo(map);
   } else {
     popup.remove();
@@ -147,25 +148,25 @@ const handleMouseMove = (e: { point: maplibregl.Point; lngLat: maplibregl.LngLat
 };
 
 // フィーチャーに一致する投稿と表示名を取得する関数
-const getMatchingLocationsAndDisplayName = (feature: maplibregl.MapGeoJSONFeature, locations: Locations) => {
-  let matchingLocations: Location[] = [];
+const getMatchingFacilitiesAndDisplayName = (feature: maplibregl.MapGeoJSONFeature, facilities: Facilities) => {
+  let matchingFacilities: Facility[] = [];
   let displayName = '';
 
   if (feature.layer.id === 'state-layer') {
     const stateName = feature.properties.STATE_NAME;
-    matchingLocations = locations.filter(location => location.state === stateName);
+    matchingFacilities = facilities.filter(facility => facility.state.name === stateName); // 修正
     displayName = stateName;
   } else if (feature.layer.id === 'lga-layer') {
     const lgaName = feature.properties.lga_name.replace(/^\["|"\]$/g, '');
-    matchingLocations = locations.filter(location => location.lga === lgaName);
+    matchingFacilities = facilities.filter(facility => facility.lga.name === lgaName); // 修正
     displayName = lgaName;
   } else if (feature.layer.id === 'suburb-layer') {
     const suburbName = feature.properties.suburb;
-    matchingLocations = locations.filter(location => location.suburb === suburbName);
+    matchingFacilities = facilities.filter(facility => facility.suburb.name === suburbName); // 修正
     displayName = suburbName;
   }
 
-  return { matchingLocations, displayName };
+  return { matchingFacilities, displayName };
 };
 
 // 地図にレイヤーを追加する関数
@@ -244,20 +245,46 @@ const setupMapClickEvents = (map: MaplibreMap) => {
 };
 
 // レイヤーの色を更新する関数
-const updateMapLayerColors = (map: MaplibreMap, locations: Locations) => {
-  const getColorByPosts = (name: string, type: keyof Location) => {
-    const locationCount = locations.filter(location => location[type] === name).length;
-    return locationCount > 40 ? HIGH_POST_COUNT_COLOR : locationCount > 8 ? MEDIUM_POST_COUNT_COLOR : locationCount > 0 ? LOW_POST_COUNT_COLOR : DEFAULT_FILL_COLOR;
+const updateMapLayerColors = (map: MaplibreMap, facilities: Facilities) => {
+  const normalizeName = (name: string) => {
+    return name.replace(/\s+/g, '').replace(/[()]/g, '').toLowerCase();
+  };
+  
+  const getColorByFacilities = (name: string, type: keyof Facility) => {
+    const normalizedName = normalizeName(name);
+    const facilityCount = facilities.filter(facility => {
+      if (type === 'state') {
+        return normalizeName(facility.state.name) === normalizedName;
+      } else if (type === 'lga') {
+        return normalizeName(facility.lga.name) === normalizedName;
+      } else if (type === 'suburb') {
+        return normalizeName(facility.suburb.name) === normalizedName;
+      }
+      return false;
+    }).length;
+  
+    return facilityCount > 40 ? HIGH_POST_COUNT_COLOR
+         : facilityCount > 8 ? MEDIUM_POST_COUNT_COLOR
+         : facilityCount > 0 ? LOW_POST_COUNT_COLOR
+         : DEFAULT_FILL_COLOR;
   };
 
-  const createColorMapping = (layerType: keyof Location, formatFn?: (name: string) => string) => {
-    return locations.reduce((acc: string[], location) => {
-      let name = location[layerType] as string;
+  const createColorMapping = (layerType: keyof Facility, formatFn?: (name: string) => string) => {
+    return facilities.reduce((acc: string[], facility) => {
+      let name = '';
+      if (layerType === 'state') {
+        name = facility.state.name; // 修正
+      } else if (layerType === 'lga') {
+        name = facility.lga.name; // 修正
+      } else if (layerType === 'suburb') {
+        name = facility.suburb.name; // 修正
+      }
+  
       if (formatFn) {
         name = formatFn(name);
       }
       if (!acc.includes(name)) {
-        acc.push(name, getColorByPosts(name, layerType));
+        acc.push(name, getColorByFacilities(name, layerType));
       }
       return acc;
     }, []);
@@ -328,10 +355,10 @@ const toggleLayerVisibility = (map: MaplibreMap, e: { point: maplibregl.PointLik
 export default function MapComponent() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
-  const [locations, setLocations] = useState<Locations>([]);
+  const [facilities, setFacilities] = useState<Facilities>([]);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [currentLayer, setCurrentLayer] = useState<string>('州'); // 初期状態を'州'に設定
-  const [filteredLocations, setFilteredLocations] = useState<Locations>([]); // フィルタされた投稿を管理する状態を追加
+  const [filteredFacilities, setFilteredFacilities] = useState<Facilities>([]); // フィルタされた投稿を管理する状態を追加
 
 
   const resetToInitialLayer = () => {
@@ -356,14 +383,14 @@ export default function MapComponent() {
     setCurrentLayer('州');
 
     // フィルタされた投稿をリセットして全ての投稿を表示
-    setFilteredLocations(locations);
+    setFilteredFacilities(facilities);
   };
 
   useEffect(() => {
     // 投稿データをロードする
-    loadLocations((data) => {
-      setLocations(data);
-      setFilteredLocations(data); // 初期状態で全データを表示
+    loadFacilities((data) => {
+      setFacilities(data);
+      setFilteredFacilities(data); // 初期状態で全データを表示
     });
   }, []);
 
@@ -372,7 +399,7 @@ export default function MapComponent() {
 
     // 地図とポップアップを初期化する
     const map = initializeMap(mapContainerRef, mapRef, pmtilesUrl);
-    const popup = setupPopup(map, locations);
+    const popup = setupPopup(map, facilities);
 
     const handleMapLoad = () => {
       addLayersToMap(map);
@@ -391,7 +418,7 @@ export default function MapComponent() {
       map.remove();
       popup.remove();
     };
-  }, [locations]);
+  }, [facilities]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -400,7 +427,7 @@ export default function MapComponent() {
 
     const updateLayerColors = () => {
       // 投稿数に応じた色を更新する
-      updateMapLayerColors(map, locations);
+      updateMapLayerColors(map, facilities);
     };
 
     const handleClick = (e: { point: maplibregl.PointLike }) => {
@@ -413,8 +440,8 @@ export default function MapComponent() {
 
       if (features.length > 0) {
         const feature = features[0];
-        const { matchingLocations } = getMatchingLocationsAndDisplayName(feature, locations);
-        setFilteredLocations(matchingLocations); // フィルタされた投稿を状態に設定
+        const { matchingFacilities } = getMatchingFacilitiesAndDisplayName(feature, facilities);
+        setFilteredFacilities(matchingFacilities); // フィルタされた投稿を状態に設定
 
         if (feature.layer.id === 'state-layer') {
           setCurrentLayer('地方自治体');
@@ -433,7 +460,7 @@ export default function MapComponent() {
       // クリックイベントのリスナーを削除する
       map.off('click', handleClick);
     };
-  }, [locations]);
+  }, [facilities]);
   
   return (
     <div
@@ -454,16 +481,16 @@ export default function MapComponent() {
           </button>
           <div className="flex flex-col bg-blue-100 p-4 h-full">
             <div className="flex-1">
-              {filteredLocations.length > 0 ? (
-                filteredLocations.map((location) => (
+              {filteredFacilities.length > 0 ? (
+                filteredFacilities.map((facility) => (
                   <div
-                    key={location.id}
+                    key={facility.id}
                     className="p-2 border border-gray-300 m-1"
                   >
-                    <h3>{location.id}</h3>
-                    <p>{location.state}</p>
-                    <p>{location.lga}</p>
-                    <p>{location.suburb}</p>
+                    <h3>{facility.id}</h3>
+                    <p>{facility.state.name}</p>
+                    <p>{facility.lga.name}</p>
+                    <p>{facility.suburb.name}</p>
                   </div>
                 ))
               ) : (
@@ -471,6 +498,7 @@ export default function MapComponent() {
               )}
             </div>
           </div>
+          {/* <ContentsCard locations={locations}/>  */}
           <ContentsCard /> 
         </div>
       )}
