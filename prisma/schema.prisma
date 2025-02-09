@@ -14,6 +14,7 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// ─── ユーザー関連 ─────────────────────────────────────────────
 model users {
   id                    String    @id @default(uuid()) // ユーザーの一意な識別子
   nickname              String // ユーザーのニックネーム
@@ -27,12 +28,15 @@ model users {
   updated_at            DateTime  @updatedAt // レコード更新日時
   deleted_at            DateTime? // 削除日時（論理削除用）
 
-  posts         post[]
-  comments      comment[]
-  likes         like[]
+  // ユーザーが投稿したレビュー
+  posts posts[]
+
+  // その他共通機能
+  comments      comments[]
+  likes         likes[]
   user_tenants  userTenant[]
-  notifications notification[]
-  commentVote   commentVote[]
+  notifications notifications[]
+  commentVote   commentVotes[]
 }
 
 model tenant {
@@ -56,28 +60,202 @@ model userTenant {
   tenant tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 }
 
-model location {
-  id         String   @id @default(uuid()) // 場所ID（外部キー）
-  name       String // 場所名
-  state      String // 所属する州
-  lga        String // 所属する地方自治体
-  suburb     String // 所属するサバーブ
-  created_at DateTime @default(now()) // レコード作成日時
-  updated_at DateTime @updatedAt // レコード更新日時
+// ─── 地理マスターデータ ─────────────────────────────────────────────
+// jsonファイルから抽出したstate, lga, suburb モデルで管理
 
-  posts post[]
+model state {
+  id         String   @id @default(uuid()) // 主キー。各 state の一意な識別子
+  name       String // 州の名称（例: "New South Wales"）
+  created_at DateTime @default(now()) // 作成日
+  updated_at DateTime @updatedAt // 更新日
 
-  @@index([lga]) // LGA（地方自治体）での検索を高速化
-  @@index([suburb]) // サバーブでの検索を高速化
-  @@index([state, lga, suburb]) // 複数条件検索を高速化
+  lgas     lga[]
+  facility facilities[]
+}
+
+model lga {
+  id         String   @id @default(uuid()) // 主キー。各 LGA の一意な識別子
+  state_id   String // 外部キー。所属する state の id
+  name       String // LGA の名称
+  created_at DateTime @default(now()) // 作成日
+  updated_at DateTime @updatedAt // 更新日
+
+  state    state        @relation(fields: [state_id], references: [id], onDelete: Cascade)
+  suburbs  suburbs[]
+  facility facilities[]
+}
+
+model suburbs {
+  id         String   @id @default(uuid()) // 主キー。各 suburb の一意な識別子
+  lga_id     String // 外部キー。所属する LGA の id
+  name       String // suburb の名称
+  created_at DateTime @default(now()) // 作成日
+  updated_at DateTime @updatedAt // 更新日
+
+  lga      lga          @relation(fields: [lga_id], references: [id], onDelete: Cascade)
+  facility facilities[]
+}
+
+// ─── 施設関連 ─────────────────────────────────────────────
+enum FacilityType {
+  WORKPLACE
+  ACCOMMODATION
+}
+
+model facilities {
+  id        String       @id @default(uuid())
+  state_id  String
+  lga_id    String
+  suburb_id String
+  type      FacilityType
+  name      String
+
+  // 各マスターとのリレーション
+  state  state   @relation(fields: [state_id], references: [id], onDelete: Cascade)
+  lga    lga     @relation(fields: [lga_id], references: [id], onDelete: Cascade)
+  suburb suburbs @relation(fields: [suburb_id], references: [id], onDelete: Cascade)
+
+  posts posts[]
+
+  // @@index([lga]) // LGA（地方自治体）での検索を高速化
+  // @@index([suburb]) // サバーブでの検索を高速化
+  // @@index([state, lga, suburb]) // 複数条件検索を高速化
+
+  // 同一 state, lga, suburb 内で、同じ施設（name と type の組み合わせ）の重複登録を防止
+  @@unique([state_id, lga_id, suburb_id, name, type])
+}
+
+// ─── 共通投稿（レビュー）テーブル ─────────────────────────────────────────────
+model posts {
+  id          String    @id @default(uuid()) // 投稿ID（一意な識別子）
+  user_id     String
+  facility_id String
+  created_at  DateTime  @default(now()) // レコード作成日時
+  updated_at  DateTime  @updatedAt // レコード更新日時
+  deleted_at  DateTime? // 削除日時（論理削除用）
+
+  // リレーション：対象施設と投稿者
+  facility facilities @relation(fields: [facility_id], references: [id], onDelete: Cascade)
+  user     users      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  // workplace と accommodation のリレーションを1つだけに制限
+  workplace     workplaces?     @relation("WorkplacePost")
+  accommodation accommodations? @relation("AccommodationPost")
+
+  comments comments[]
+  likes    likes[]
+  images   images[]
+
+  @@index([facility_id]) // facilityでの検索を高速化
+}
+
+// ─── WORKPLACE 拡張テーブル（施設レビュー詳細：WORKPLACE 用） ─────────────────────────────────────────────
+model workplaces {
+  post_id    String   @id
+  // WORKPLACE 固有のレビュー詳細
+  wage       Float? // ユーザーが投稿した実際の時給
+  atmosphere String[] // ユーザーが投稿した職場の雰囲気
+  rating     Int? // 推奨レベル
+  comment    String? // 自由記述のレビュー内容
+
+  post posts @relation("WorkplacePost", fields: [post_id], references: [id], onDelete: Cascade)
+
+  @@index([wage]) // 検索用インデックス
+  @@index([rating]) // 検索用インデックス
+  @@index([rating, wage]) // 推薦レベルと時給の組み合わせ検索を高速化
+}
+
+// ─── ACCOMMODATION 拡張テーブル（施設レビュー詳細：ACCOMMODATION 用） ─────────────────────────────────────────────
+model accommodations {
+  post_id String   @id
+  // ACCOMMODATION 固有のレビュー詳細
+  rent    Float? // ユーザーが投稿した実際の家賃情報
+  setup   String[] // ユーザーが投稿した部屋の構成情報
+  rating  Int? // 推奨レベル
+  comment String? // 自由記述のレビュー内容
+
+  post posts @relation("AccommodationPost", fields: [post_id], references: [id], onDelete: Cascade)
+
+  @@index([rent]) // 検索用インデックス
+  @@index([rating]) // 検索用インデックス
+  @@index([rent, rating]) // 推薦レベルと時給の組み合わせ検索を高速化
+}
+
+// ─── 画像関連 ─────────────────────────────────────────────
+model images {
+  id         String    @id @default(uuid()) // 画像ID
+  post_id    String // 投稿ID（外部キー）
+  url        String // 画像URL
+  created_at DateTime  @default(now()) // 作成日時
+  deleted_at DateTime? // 削除日時（論理削除用）
+
+  post posts @relation(fields: [post_id], references: [id], onDelete: Cascade)
+}
+
+model comments {
+  id         String    @id @default(uuid()) // コメントID（一意な識別子）
+  user_id    String
+  post_id    String
+  content    String // コメント内容
+  created_at DateTime  @default(now()) // レコード作成日時
+  updated_at DateTime  @updatedAt // レコード更新日時
+  deleted_at DateTime? // 削除日時（論理削除用）
+  is_hidden  Boolean   @default(false) // downvote が一定数を超えたら true にする
+
+  user              users                @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  post              posts                @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  votes             commentVotes[]
+  adminNotification adminNotifications[]
+}
+
+enum VoteType {
+  UPVOTE
+  DOWNVOTE
+}
+
+// コメントへの投票（UPVOTE/DOWNVOTE）を記録
+model commentVotes {
+  id         String   @id @default(uuid())
+  user_id    String
+  comment_id String
+  vote_type  VoteType
+  created_at DateTime @default(now())
+
+  user    users    @relation(fields: [user_id], references: [id])
+  comment comments @relation(fields: [comment_id], references: [id])
+
+  @@unique([user_id, comment_id]) // 1ユーザーが1コメントに対して1回しか投票できない
+}
+
+// 管理者への通知を記録
+model adminNotifications {
+  id          String   @id @default(uuid())
+  comment_id  String
+  message     String
+  notified_at DateTime @default(now())
+
+  comment comments @relation(fields: [comment_id], references: [id])
+}
+
+model likes {
+  id         String    @id @default(uuid()) // いいねID（一意な識別子）
+  user_id    String
+  post_id    String
+  created_at DateTime  @default(now()) // レコード作成日時
+  deleted_at DateTime? // 削除日時（論理削除用）
+
+  user users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  post posts @relation(fields: [post_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, post_id]) // 同じユーザーが同じ投稿に複数いいねできないよう制約を追加
 }
 
 enum NotificationTargetType {
-  Post
-  Comment
+  POST
+  COMMENT
 }
 
-model notification {
+model notifications {
   id          String                 @id @default(uuid()) // 通知ID
   user_id     String // 通知を受け取るユーザー
   type        String // 通知タイプ（例: "comment", "like"）
@@ -89,124 +267,4 @@ model notification {
   deleted_at  DateTime? // 削除日時（論理削除用）
 
   user users @relation(fields: [user_id], references: [id], onDelete: Cascade)
-}
-
-enum PostType {
-  Workplace
-  Accommodation
-}
-
-model post {
-  id          String    @id @default(uuid()) // 投稿ID（一意な識別子）
-  user_id     String
-  location_id String // 投稿が紐づく場所
-  post_type   PostType // Enum に変更
-  created_at  DateTime  @default(now()) // レコード作成日時
-  updated_at  DateTime  @updatedAt // レコード更新日時
-  deleted_at  DateTime? // 削除日時（論理削除用）
-
-  user          users          @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  location      location       @relation(fields: [location_id], references: [id], onDelete: Cascade)
-  workplace     workplace?
-  accommodation accommodation?
-  comments      comment[]
-  likes         like[]
-  image         image[]
-}
-
-model image {
-  id         String    @id @default(uuid()) // 画像ID
-  post_id    String // 投稿ID（外部キー）
-  url        String // 画像URL
-  created_at DateTime  @default(now()) // 作成日時
-  deleted_at DateTime? // 削除日時（論理削除用）
-
-  post post @relation(fields: [post_id], references: [id], onDelete: Cascade)
-}
-
-model workplace {
-  post_id    String   @id @unique // 投稿ID（外部キー）
-  wage       Float    @default(0) // 時給
-  atmosphere String[] // 職場の雰囲気（複数選択可能）
-  rating     Int // 推薦レベル（1〜5）
-  comment    String? // コメント（職場に関する自由記述）
-
-  post post @relation(fields: [post_id], references: [id], onDelete: Cascade)
-
-  @@index([wage]) // 検索用インデックス
-  @@index([rating]) // 検索用インデックス
-  @@index([rating, wage]) // 推薦レベルと時給の組み合わせ検索を高速化
-}
-
-model accommodation {
-  post_id String   @id @unique // 投稿ID（外部キー）
-  rent    Float    @default(0) // 家賃（月額または週額）
-  setup   String[] // 部屋の構成（例: シングルルーム、シェアルーム）
-  rating  Int // 推薦レベル（1〜5）
-  comment String? // コメント（宿泊施設に関する自由記述）
-
-  post post @relation(fields: [post_id], references: [id], onDelete: Cascade)
-
-  @@index([rent]) // 検索用インデックス
-  @@index([rating]) // 検索用インデックス
-  @@index([rating, rent]) // 推薦レベルと家賃の組み合わせ検索を高速化
-}
-
-model comment {
-  id         String    @id @default(uuid()) // コメントID（一意な識別子）
-  user_id    String
-  post_id    String
-  content    String // コメント内容
-  created_at DateTime  @default(now()) // レコード作成日時
-  updated_at DateTime  @updatedAt // レコード更新日時
-  deleted_at DateTime? // 削除日時（論理削除用）
-  is_hidden  Boolean   @default(false) // downvote が一定数を超えたら true にする
-
-  user              users               @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  post              post                @relation(fields: [post_id], references: [id], onDelete: Cascade)
-  votes             commentVote[]
-  adminNotification adminNotification[]
-}
-
-// コメントへの投票（upvote/downvote）を記録
-model commentVote {
-  id         String   @id @default(uuid())
-  user_id    String
-  comment_id String
-  vote_type  VoteType
-
-  created_at DateTime @default(now())
-
-  user    users   @relation(fields: [user_id], references: [id])
-  comment comment @relation(fields: [comment_id], references: [id])
-
-  @@unique([user_id, comment_id]) // 1ユーザーが1コメントに対して1回しか投票できない
-}
-
-// 管理者への通知を記録
-model adminNotification {
-  id          String   @id @default(uuid())
-  comment_id  String
-  message     String
-  notified_at DateTime @default(now())
-
-  comment comment @relation(fields: [comment_id], references: [id])
-}
-
-enum VoteType {
-  upvote
-  downvote
-}
-
-model like {
-  id         String    @id @default(uuid()) // いいねID（一意な識別子）
-  user_id    String
-  post_id    String
-  created_at DateTime  @default(now()) // レコード作成日時
-  deleted_at DateTime? // 削除日時（論理削除用）
-
-  user users @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  post post  @relation(fields: [post_id], references: [id], onDelete: Cascade)
-
-  @@unique([user_id, post_id]) // 同じユーザーが同じ投稿に複数いいねできないよう制約を追加
 }
