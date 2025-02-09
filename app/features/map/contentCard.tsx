@@ -1,6 +1,6 @@
 "use client"
 
-import { fetchLocations } from "@/app/lib/api"
+import { fetchFacilities } from "@/app/lib/api"
 import { Card, Text, Badge, Button } from "@mantine/core"
 import Image from "next/image"
 import { useEffect } from "react"
@@ -22,7 +22,7 @@ export default function ContentsCard() {
         // }
 
         // fetchWorkplacePosts()
-        const data = fetchLocations(); 
+        const data = fetchFacilities(); 
         console.log("dataとれたよ", data);
     }, [])
 
