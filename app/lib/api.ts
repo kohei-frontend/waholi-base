@@ -1,36 +1,18 @@
-import { Location } from "@/app/types";
+import { Facility } from "../types";
 
-export async function fetchPosts() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    const apiKey = process.env.NEXT_PUBLIC_SUPABASE_API_KEY as string;
-    if (!apiUrl) {
-      console.error("API URLが設定されていません");
-      return [];
-    }
-    try {
-      const res = await fetch(`${apiUrl}post`, {
-        headers: {
-          'apikey': apiKey, // APIキーをヘッダーに追加
-        }
-      });
-      if (!res.ok) {
-        throw new Error(`HTTPエラー! ステータス: ${res.status}`);
-      }
-      const data = await res.json();
-      return data;
-    } catch (error) {
-      console.error("データの取得中にエラーが発生しました:", error);
-      return [];
-    }
-  }
-  
-export async function fetchLocations(): Promise<Location[]> { 
+export async function fetchFacilities(type?: string, wage?: string, rent?: string, rating?: string) {
   try {
-    const response = await fetch('/api/posts');
+    const queryParams = new URLSearchParams();
+    if (type) queryParams.append('type', type);
+    if (wage) queryParams.append('wage', wage);
+    if (rent) queryParams.append('rent', rent);
+    if (rating) queryParams.append('rating', rating);
+
+    const response = await fetch(`/api/facilities?${queryParams.toString()}`);
     if (!response.ok) {
       throw new Error('データの取得に失敗しました');
     }
-    const data = await response.json() as Location[]; 
+    const data = await response.json() as Facility[]; 
     console.log("results", data);
     return data;
   } catch (error) {
