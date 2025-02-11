@@ -472,34 +472,14 @@ export default function MapComponent() {
     >
       {/* サイドバー（左側のコンテンツ） */}
       {isSidebarVisible && (
-        <div className="bg-blue-100 overflow-auto relative order-2 md:order-none">
+        <div className="overflow-auto relative order-2 md:order-none">
           <button
             onClick={() => setIsSidebarVisible(false)}
             className="absolute top-2 right-2 bg-gray-200 rounded-full p-1 hover:bg-gray-300"
           >
             ＜
           </button>
-          <div className="flex flex-col bg-blue-100 p-4 h-full">
-            <div className="flex-1">
-              {filteredFacilities.length > 0 ? (
-                filteredFacilities.map((facility) => (
-                  <div
-                    key={facility.id}
-                    className="p-2 border border-gray-300 m-1"
-                  >
-                    <h3>{facility.id}</h3>
-                    <p>{facility.state.name}</p>
-                    <p>{facility.lga.name}</p>
-                    <p>{facility.suburb.name}</p>
-                  </div>
-                ))
-              ) : (
-                <p>データがありません。</p>
-              )}
-            </div>
-          </div>
-          {/* <ContentsCard locations={locations}/>  */}
-          <ContentsCard /> 
+          <ContentsCard facilities={filteredFacilities}/> 
         </div>
       )}
   
