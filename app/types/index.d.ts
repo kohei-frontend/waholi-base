@@ -256,4 +256,53 @@ export type MapRef = React.RefObject<Map | null>;
 
 export type MaplibreMap = Map;
 
+export type FilterSearch = {
+    type?: string;
+    wageRange?: [number, number]; // 時給の範囲
+    rentRange?: [number, number]; // 家賃の範囲
+    rating?: number; // おすすめ度
+};
 
+// whereOptionsの型定義
+export type whereCondition = {
+    posts?: {
+        some?: {
+            AND?: Array<{
+                [key: string]: {
+                    [field: string]: {
+                        gte?: number;
+                        lte?: number;
+                    };
+                };
+            }>;
+        };
+    };
+};
+
+export type IncludeOptions = {
+    state: boolean;
+    lga: boolean;
+    suburb: boolean;
+    posts: {
+        include: {
+            images: boolean;
+            workplace?: boolean;
+            accommodation?: boolean;
+        };
+        where: {
+            [key: string]: {
+                [field: string]: {
+                    gte?: number;
+                    lte?: number;
+                };
+            };
+        };
+    };
+};
+
+export type MinMax = {
+    gte?: number;
+    lte?: number;
+};
+
+export type PostIncludeType = 'workplace' | 'accommodation';
