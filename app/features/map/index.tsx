@@ -5,9 +5,10 @@ import maplibregl, { Map } from "maplibre-gl";
 import * as pmtiles from 'pmtiles';
 import "maplibre-gl/dist/maplibre-gl.css";
 import { fetchFacilities } from "@/app/lib/api";
-import { MapContainerRef, MaplibreMap, Facilities, Facility, SetFacilities } from "@/app/types";
-import { Button } from '@mantine/core';
+import { MapContainerRef, MaplibreMap, Facilities, Facility, SetFacilities, FilterSearch } from "@/app/types";
+import { Affix, Button } from '@mantine/core';
 import ContentsCard from "./contentCard";
+import FilterModal from "./filterModal";
 
 // PMTILESを環境変数で使用
 const pmtilesUrl = process.env.NEXT_PUBLIC_PMTILES_URL as string;
@@ -20,11 +21,16 @@ const LOW_POST_COUNT_COLOR = '#00FF00';
 const tilesUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
 // 投稿データをロードする関数
-const loadFacilities = async (SetFacilities: SetFacilities) => {
+const loadFacilities = async (
+  SetFacilities: SetFacilities,
+  setFilteredFacilities: React.Dispatch<React.SetStateAction<Facilities>>,
+  params?: { type?: string, wage?: number, rating?: number, rent?: number }
+) => {
   // APIから投稿データを取得し、状態を更新する
-  const data = await fetchFacilities();
-  // console.log("data", data);
+  const data = await fetchFacilities(params);
+  console.log("data", data);
   SetFacilities(data);
+  setFilteredFacilities(data); // 追加: フィルタされた投稿を更新
 };
 
 // 地図の初期化を行う関数
@@ -359,7 +365,12 @@ export default function MapComponent() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [currentLayer, setCurrentLayer] = useState<string>('州'); // 初期状態を'州'に設定
   const [filteredFacilities, setFilteredFacilities] = useState<Facilities>([]); // フィルタされた投稿を管理する状態を追加
+  const [showFilters, setShowFilters] = useState(false); // フィルターモーダルの表示状態を管理
 
+  const handleApplyFilters = (filters: FilterSearch) => {
+    setShowFilters(false);
+    loadFacilities(setFacilities, setFilteredFacilities, filters);  // フィルターを適用してAPIを呼び出す
+  };
 
   const resetToInitialLayer = () => {
     if (!mapRef.current) return;
@@ -388,10 +399,7 @@ export default function MapComponent() {
 
   useEffect(() => {
     // 投稿データをロードする
-    loadFacilities((data) => {
-      setFacilities(data);
-      setFilteredFacilities(data); // 初期状態で全データを表示
-    });
+    loadFacilities(setFacilities, setFilteredFacilities); // 初期状態で全データを表示
   }, []);
 
   useEffect(() => {
@@ -499,15 +507,31 @@ export default function MapComponent() {
             </button>
           )}
           {currentLayer && (
-            <Button
-              className="absolute bottom-2 right-2"
-              variant="filled"
-              style={{ zIndex: 1000 }} // z-indexを高く設定
-              onClick={resetToInitialLayer} // ボタンをクリックしたときにリセット
-            >
-              現在のレイヤー: {currentLayer}✖
-            </Button>
+            <Affix position={{ top: 100, right: 10 }}>
+                <Button
+                  variant="filled"
+                  style={{ zIndex: 1000 }} // z-indexを高く設定
+                  onClick={resetToInitialLayer} // ボタンをクリックしたときにリセット
+                >
+                  現在のレイヤー: {currentLayer}✖
+                </Button>
+          </Affix>
+            
           )}
+          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10">
+            <button
+              onClick={() => setShowFilters(true)}
+              className="bg-white px-4 py-2 rounded-lg shadow"
+            >
+              Show Filters
+            </button>
+
+            <FilterModal
+              isOpen={showFilters}
+              onClose={() => setShowFilters(false)}
+              onApply={handleApplyFilters}
+            />
+          </div>
         </div>
       </div>
     </div>
