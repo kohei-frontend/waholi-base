@@ -367,6 +367,17 @@ export default function MapComponent() {
   const [filteredFacilities, setFilteredFacilities] = useState<Facilities>([]); // フィルタされた投稿を管理する状態を追加
   const [showFilters, setShowFilters] = useState(false); // フィルターモーダルの表示状態を管理
 
+  const handleFacilityClick = async (id: string) => {
+    try {
+      const facilityData = await fetchFacilityById(id); // facilityの情報を取得
+      console.log("スペースの詳細データ", facilityData);
+      const url = `/space/${id}`; // 動的URLを作成
+      window.open(url, '_blank'); // 新しいタブで開く
+    } catch (error) {
+      console.error("Failed to fetch facility data", error);
+    }
+  };
+
   const handleApplyFilters = (filters: FilterSearch) => {
     setShowFilters(false);
     loadFacilities(setFacilities, setFilteredFacilities, filters);  // フィルターを適用してAPIを呼び出す
@@ -487,10 +498,10 @@ export default function MapComponent() {
           >
             ＜
           </button>
-          <ContentsCard facilities={filteredFacilities}/> 
+          <ContentsCard facilities={filteredFacilities} onFacilityClick={handleFacilityClick}/>
         </div>
       )}
-  
+
       {/* メインコンテンツ（右側のコンテンツ） */}
       <div
         className={`bg-gray-50 relative transition-all duration-300 order-1 md:order-none ${
