@@ -31,6 +31,34 @@ function setCondition(type: string, param: string | null, field: string, include
 export const GET = async (request: Request) => {
     try {
         const url = new URL(request.url);
+
+        const facilityId = url.searchParams.get('facility_id');
+
+        if (facilityId) {
+            // 特定のfacility_idに基づいてデータを取得
+            const facility = await prisma.facilities.findUnique({
+                where: { id: facilityId },
+                include: {
+                    state: true,
+                    lga: true,
+                    suburb: true,
+                    posts: {
+                        include: {
+                            images: true,
+                            workplace: true,
+                            accommodation: true,
+                        },
+                    },
+                },
+            });
+            if (!facility) {
+                return NextResponse.json({ error: 'Facility not found' }, { status: 404 });
+            }
+
+            return NextResponse.json(facility, { status: 200 });
+        }
+
+        // 既存の条件に基づくデータ取得ロジック
         const type = url.searchParams.get('type');
         const wageMin = url.searchParams.get('wageMin');
         const wageMax = url.searchParams.get('wageMax');
