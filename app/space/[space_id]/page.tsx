@@ -51,9 +51,115 @@ export default function Page() {
 		return <div>Loading...</div>;
 	}
 
-	const PostsCard = ({ facilityData }: { facilityData: Facility }) => {
+	const Post = ({
+		post,
+		facilityData,
+	}: {
+		post: Facility["posts"][number];
+		facilityData: Facility;
+	}) => {
+		const { type } = facilityData;
 		const avatar = "M";
 
+		return (
+			<Card className="max-w-xl mx-auto p-4 shadow-sm">
+				<div className="flex items-start justify-between mb-4">
+					<div className="flex items-center gap-3">
+						<Avatar color="green" radius="xl" className="text-white">
+							{avatar}
+						</Avatar>
+						<div>
+							<h3 className="font-medium">{post.user_id}</h3>
+						</div>
+					</div>
+				</div>
+
+				{type === "WORKPLACE" && (
+					<>
+						<div className="mb-2 flex items-center gap-2">
+							<Rating value={post.workplace?.rating} fractions={2} readOnly />
+							<span className="text-sm text-gray-600 ml-2">
+								<FormattedDate date={new Date(post.created_at)} />
+							</span>
+						</div>
+						<p>雰囲気:</p>
+						<div className="flex gap-2">
+							{post.workplace?.atmosphere.map((word, index) => (
+								<Pill key={index}>{word}</Pill>
+							))}
+						</div>
+						<p>時給: {post.workplace?.wage}ドル</p>
+						<p className="mb-4 text-gray-800">{post.workplace?.comment}</p>
+					</>
+				)}
+				{type === "ACCOMMODATION" && (
+					<>
+						<div className="mb-2 flex items-center gap-2">
+							<Rating value={post.accommodation?.rating} fractions={2} readOnly />
+							<FormattedDate date={new Date(post.created_at)} />
+						</div>
+						<p>設備: {post.accommodation?.setup}</p>
+						<p>レント: {post.accommodation?.rent}ドル/週</p>
+						<p className="mb-4 text-gray-800">{post.accommodation?.comment}</p>
+					</>
+				)}
+
+				<ImageSlider images={post.images} />
+				<div className="grid grid-cols-5 gap-4 p-4">
+					<Button
+						variant="subtle"
+						className="flex flex-col items-center"
+						leftSection={
+							<FontAwesomeIcon icon={faBookmark} className="text-indigo-600" />
+						}
+					>
+						<span className="text-xs mt-1">イイね</span>
+					</Button>
+					<Button
+						variant="subtle"
+						className="flex flex-col items-center"
+						leftSection={
+							<FontAwesomeIcon icon={faShareAlt} className="text-indigo-600" />
+						}
+					>
+						<span className="text-xs mt-1">共有</span>
+					</Button>
+				</div>
+			</Card>
+		);
+	};
+
+	// ImageSliderコンポーネントの作成
+	const ImageSlider = ({ images }: { images: any[] }) => (
+		<Swiper
+			modules={[Navigation, Pagination, EffectFade]}
+			slidesPerView={1}
+			loop={true}
+			effect="fade"
+			navigation
+			pagination
+			style={{ width: "100%", height: "auto" }}
+		>
+			{images.map((image, index) => (
+				<SwiperSlide key={index}>
+					<div className="aspect-square">
+						<Image
+							src={image.url}
+							alt={`Review image ${index + 1}`}
+							className="w-full h-full object-cover rounded-lg"
+							width={600}
+							height={600}
+							quality={50}
+							priority={true}
+						/>
+					</div>
+				</SwiperSlide>
+			))}
+		</Swiper>
+	);
+
+	// PostsCardコンポーネントの更新
+	const PostsCard = ({ facilityData }: { facilityData: Facility }) => {
 		if (!facilityData) {
 			return <div>投稿がありません。</div>;
 		}
@@ -61,106 +167,7 @@ export default function Page() {
 		return (
 			<>
 				{facilityData.posts.map((post, index) => (
-					<Card key={index} className="max-w-xl mx-auto p-4 shadow-sm">
-						<div className="flex items-start justify-between mb-4">
-							<div className="flex items-center gap-3">
-								<Avatar color="green" radius="xl" className="text-white">
-									{avatar}
-								</Avatar>
-								<div>
-									<h3 className="font-medium">{post.user_id}</h3>
-								</div>
-							</div>
-						</div>
-
-						{facilityData.type === "WORKPLACE" && (
-							<>
-								<div className="mb-2 flex items-center gap-2">
-									<Rating value={post.workplace?.rating} fractions={2} readOnly />
-									<span className="text-sm text-gray-600 ml-2">
-										<FormattedDate date={new Date(post.created_at)} />
-									</span>
-								</div>
-								<p>雰囲気:</p>
-								<div className="flex gap-2">
-									{post.workplace?.atmosphere.map((word, index) => (
-										<Pill key={index}>{word}</Pill>
-									))}
-								</div>
-								<p>時給: {post.workplace?.wage}ドル</p>
-								<p className="mb-4 text-gray-800">{post.workplace?.comment}</p>
-							</>
-						)}
-						{facilityData.type === "ACCOMMODATION" && (
-							<>
-								<div className="mb-2 flex items-center gap-2">
-									<Rating
-										value={post.accommodation?.rating}
-										fractions={2}
-										readOnly
-									/>
-									<FormattedDate date={new Date(post.created_at)} />
-								</div>
-								<p>設備: {post.accommodation?.setup}</p>
-								<p>レント: {post.accommodation?.rent}ドル/週</p>
-								<p className="mb-4 text-gray-800">{post.accommodation?.comment}</p>
-							</>
-						)}
-
-						<Swiper
-							modules={[Navigation, Pagination, EffectFade]}
-							slidesPerView={1}
-							loop={true}
-							effect="fade"
-							navigation
-							pagination
-							style={{ width: "100%", height: "auto" }} // スタイルを追加
-						>
-							{post.images.map((image, index) => {
-								return (
-									<SwiperSlide key={index}>
-										<div className="aspect-square">
-											<Image
-												src={image.url || "/placeholder.svg"}
-												alt={`Review image ${index + 1}`}
-												className="w-full h-full object-cover rounded-lg"
-												width={600}
-												height={600}
-												quality={50}
-												priority={true}
-											/>
-										</div>
-									</SwiperSlide>
-								);
-							})}
-						</Swiper>
-						<div className="grid grid-cols-5 gap-4 p-4">
-							<Button
-								variant="subtle"
-								className="flex flex-col items-center"
-								leftSection={
-									<FontAwesomeIcon
-										icon={faBookmark}
-										className="text-indigo-600"
-									/>
-								}
-							>
-								<span className="text-xs mt-1">イイね</span>
-							</Button>
-							<Button
-								variant="subtle"
-								className="flex flex-col items-center"
-								leftSection={
-									<FontAwesomeIcon
-										icon={faShareAlt}
-										className="text-indigo-600"
-									/>
-								}
-							>
-								<span className="text-xs mt-1">共有</span>
-							</Button>
-						</div>
-					</Card>
+					<Post key={index} post={post} facilityData={facilityData} />
 				))}
 			</>
 		);
