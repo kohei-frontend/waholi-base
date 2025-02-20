@@ -36,4 +36,20 @@ export const fetchFacilities = async (params?: { type?: string, wageRange?: [num
     console.error('データの取得中にエラーが発生しました:', error);
     throw error;
   }
+};// 特定のfacility_idに基づいてデータを取得する関数
+export const fetchFacilityById = async (facilityId: string) => {
+	console.log("facilityId", facilityId);
+	try {
+		const queryParams = new URLSearchParams();
+		queryParams.append("facility_id", facilityId.toString());
+		const response = await fetch(`/api/facilities?${queryParams.toString()}`);
+		if (!response.ok) {
+			throw new Error("Failed to fetch facility data");
+		}
+		const data = await response.json();
+		return data;
+	} catch (error) {
+		console.error("Error fetching facility by ID:", error);
+		return null;
+	}
 };
