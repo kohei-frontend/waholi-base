@@ -125,6 +125,12 @@ model facilities {
   @@unique([state_id, lga_id, suburb_id, name, type])
 }
 
+// ─── 投稿タイプ ─────────────────────────────────────────────
+enum PostType {
+  REVIEW
+  RECRUITMENT
+}
+
 // ─── 共通投稿（レビュー）テーブル ─────────────────────────────────────────────
 model posts {
   id          String    @id @default(uuid()) // 投稿ID（一意な識別子）
@@ -133,6 +139,7 @@ model posts {
   created_at  DateTime  @default(now()) // レコード作成日時
   updated_at  DateTime  @updatedAt // レコード更新日時
   deleted_at  DateTime? // 削除日時（論理削除用）
+  type PostType
 
   // リレーション：対象施設と投稿者
   facility facilities @relation(fields: [facility_id], references: [id], onDelete: Cascade)
@@ -153,6 +160,7 @@ model posts {
 model workplaces {
   post_id    String   @id
   // WORKPLACE 固有のレビュー詳細
+  job_category String? // 職種カテゴリー
   wage       Float? // ユーザーが投稿した実際の時給
   atmosphere String[] // ユーザーが投稿した職場の雰囲気
   rating     Int? // 推奨レベル
@@ -162,7 +170,8 @@ model workplaces {
 
   @@index([wage]) // 検索用インデックス
   @@index([rating]) // 検索用インデックス
-  @@index([rating, wage]) // 推薦レベルと時給の組み合わせ検索を高速化
+  @@index([job_category]) // 検索用インデックス
+  @@index([rating, wage, job_category]) // 組み合わせ検索を高速化
 }
 
 // ─── ACCOMMODATION 拡張テーブル（施設レビュー詳細：ACCOMMODATION 用） ─────────────────────────────────────────────
