@@ -87,6 +87,11 @@ export type Facility = {
 
 export type Facilities = Facility[];
 
+export enum PostType {
+	REVIEW = "REVIEW",
+	RECRUITMENT = "RECRUITMENT",
+}
+
 export type Post = {
 	id: string;
 	user_id: string;
@@ -96,11 +101,12 @@ export type Post = {
 	deleted_at?: Date;
 	facility: Facility;
 	user: User;
+	type: PostType;
 	workplace?: Workplace;
 	accommodation?: Accommodation;
 	comments: Comment[];
 	likes: Like[];
-	images: Image[];
+	images: ImageData[];
 };
 
 export type Workplace = {
@@ -109,6 +115,7 @@ export type Workplace = {
 	atmosphere: string[];
 	rating?: number;
 	comment?: string;
+	job_category?: string;
 	post: Post;
 };
 
@@ -121,7 +128,7 @@ export type Accommodation = {
 	post: Post;
 };
 
-export type Image = {
+export type ImageData = {
 	id: string;
 	post_id: string;
 	url: string;
