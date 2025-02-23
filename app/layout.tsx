@@ -3,6 +3,8 @@ import "./globals.css";
 import "@mantine/core/styles.css";
 
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
+import { HeaderMenu } from "./features/header";
+import Footer from "./features/footer";
 
 export const metadata: Metadata = {
 	title: "Create Next App",
@@ -16,7 +18,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 				<ColorSchemeScript />
 			</head>
 			<body>
-				<MantineProvider>{children}</MantineProvider>
+				<MantineProvider>
+					<HeaderMenu />
+					{children}
+					<Footer />
+				</MantineProvider>
 			</body>
 		</html>
 	);
