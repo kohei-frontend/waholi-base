@@ -33,7 +33,7 @@ export default function ContentsCard({
 	onFacilityClick,
 }: ContentsCardProps & { onFacilityClick: (id: string) => void }) {
 	return (
-		<div className="flex flex-wrap justify-center gap-4 mt-4">
+		<div className="flex flex-wrap justify-center gap-4 mt-1">
 			{facilities.length ? (
 				facilities.map((facility) => (
 					<Card
