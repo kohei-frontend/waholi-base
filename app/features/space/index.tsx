@@ -31,8 +31,13 @@ const SpaceFeature = ({ facilityData }: { facilityData: Facility }) => {
 	const [activeTab, setActiveTab] = useState("reviews");
 
 	// REVIEWとRECRUITMENTに分ける
-	const reviewPosts = facilityData.posts.filter((post) => post.type === "REVIEW");
-	const recruitmentPosts = facilityData.posts.filter((post) => post.type === "RECRUITMENT");
+	const reviewPosts = facilityData.posts
+		.filter((post) => post.type === "REVIEW")
+		.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+	const recruitmentPosts = facilityData.posts
+		.filter((post) => post.type === "RECRUITMENT")
+		.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
 	return (
 		<>
