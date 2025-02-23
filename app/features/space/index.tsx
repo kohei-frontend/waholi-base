@@ -14,6 +14,7 @@ import {
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, EffectFade } from "swiper/modules";
 import FormattedDate from "@/app/_components/FormattedDate";
+import { faHeart, faShareFromSquare } from "@fortawesome/free-regular-svg-icons";
 import { Facility } from "@/app/types";
 
 import "swiper/css";
@@ -53,6 +54,14 @@ const SpaceFeature = ({ facilityData }: { facilityData: Facility }) => {
 					fill
 					className="object-cover"
 				/>
+				<div className="absolute top-0 right-0 flex space-x-4 p-4">
+					<button>
+						<FontAwesomeIcon icon={faShareFromSquare} size="lg" />
+					</button>
+					<button>
+						<FontAwesomeIcon icon={faHeart} size="lg" />
+					</button>
+				</div>
 			</div>
 
 			{/* Business Info */}
