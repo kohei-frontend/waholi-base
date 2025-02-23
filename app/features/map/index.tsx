@@ -525,12 +525,6 @@ export default function MapComponent() {
 			{/* サイドバー（左側のコンテンツ） */}
 			{isSidebarVisible && (
 				<div className="overflow-auto relative order-2 md:order-none">
-					<button
-						onClick={() => setIsSidebarVisible(false)}
-						className="absolute top-2 right-2 bg-gray-200 rounded-full p-1 hover:bg-gray-300"
-					>
-						＜
-					</button>
 					<ContentsCard
 						facilities={filteredFacilities}
 						onFacilityClick={handleFacilityClick}
@@ -545,39 +539,41 @@ export default function MapComponent() {
 				}`}
 			>
 				<div ref={mapContainerRef} className="h-full w-full relative">
-					{!isSidebarVisible && (
-						<button
-							onClick={() => setIsSidebarVisible(true)}
-							className="absolute top-2 left-2 bg-gray-200 rounded-full p-2 hover:bg-gray-300 flex items-center z-10"
-						>
-							＞ Show list
-						</button>
-					)}
-					{currentLayer && (
-						<Affix position={{ top: 100, right: 10 }}>
-							<Button
-								variant="filled"
-								style={{ zIndex: 1000 }} // z-indexを高く設定
-								onClick={resetToInitialLayer} // ボタンをクリックしたときにリセット
+					<div className="absolute top-2 left-0 right-0 z-10 flex justify-between px-4">
+						{isSidebarVisible ? (
+							<button
+								onClick={() => setIsSidebarVisible(false)}
+								className="bg-white rounded-full p-2 hover:bg-gray-300 flex items-center"
 							>
-								現在のレイヤー: {currentLayer}✖
-							</Button>
-						</Affix>
-					)}
-					<div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10">
+								＜
+							</button>
+						) : (
+							<button
+								onClick={() => setIsSidebarVisible(true)}
+								className="bg-white rounded-full p-2 hover:bg-gray-300 flex items-center"
+							>
+								＞ Show list
+							</button>
+						)}
 						<button
 							onClick={() => setShowFilters(true)}
 							className="bg-white px-4 py-2 rounded-lg shadow"
 						>
 							Show Filters
 						</button>
-
-						<FilterModal
-							isOpen={showFilters}
-							onClose={() => setShowFilters(false)}
-							onApply={handleApplyFilters}
-						/>
+						<Button
+							className="bg-white px-4 py-2 rounded-lg shadow"
+							style={{ zIndex: 1000, borderRadius: "32px" }}
+							onClick={resetToInitialLayer}
+						>
+							{currentLayer}✖
+						</Button>
 					</div>
+					<FilterModal
+						isOpen={showFilters}
+						onClose={() => setShowFilters(false)}
+						onApply={handleApplyFilters}
+					/>
 				</div>
 			</div>
 		</div>
