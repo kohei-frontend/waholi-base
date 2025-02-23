@@ -1,19 +1,9 @@
 "use client";
 
-import { TextInput, Tabs, Button, Rating, Card, Avatar, Pill } from "@mantine/core";
+import { Tabs, Rating } from "@mantine/core";
 import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-	faSearch,
-	faTimes,
-	faBookmark,
-	faShareAlt,
-	faMapMarkerAlt,
-	faGlobe,
-} from "@fortawesome/free-solid-svg-icons";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination, EffectFade } from "swiper/modules";
-import FormattedDate from "@/app/_components/FormattedDate";
+import { faMapMarkerAlt, faGlobe } from "@fortawesome/free-solid-svg-icons";
 import { faHeart, faShareFromSquare } from "@fortawesome/free-regular-svg-icons";
 import { Facility } from "@/app/types";
 
@@ -41,16 +31,6 @@ const SpaceFeature = ({ facilityData }: { facilityData: Facility }) => {
 
 	return (
 		<>
-			{/* Search Bar */}
-			<div className="relative p-4 border-b">
-				<TextInput
-					placeholder={facilityData.name || "Lune Croissanterie Armadale"}
-					leftSection={<FontAwesomeIcon icon={faSearch} className="text-gray-400" />}
-					rightSection={<FontAwesomeIcon icon={faTimes} className="text-gray-400" />}
-					className="w-full"
-				/>
-			</div>
-
 			{/* Main Image */}
 			<div className="relative h-96">
 				<Image
