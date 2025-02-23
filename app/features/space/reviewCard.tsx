@@ -99,22 +99,6 @@ const Review = ({
 			)}
 
 			<ImageSlider images={post.images} />
-			<div className="grid grid-cols-5 gap-4 p-4">
-				<Button
-					variant="subtle"
-					className="flex flex-col items-center"
-					leftSection={<FontAwesomeIcon icon={faBookmark} className="text-indigo-600" />}
-				>
-					<span className="text-xs mt-1">イイね</span>
-				</Button>
-				<Button
-					variant="subtle"
-					className="flex flex-col items-center"
-					leftSection={<FontAwesomeIcon icon={faShareAlt} className="text-indigo-600" />}
-				>
-					<span className="text-xs mt-1">共有</span>
-				</Button>
-			</div>
 		</Card>
 	);
 };
