@@ -155,6 +155,7 @@ const handleMouseMove = (
 	});
 	if (!features.length) {
 		popup.remove();
+		clearHighlight(map);
 		return;
 	}
 
@@ -172,8 +173,59 @@ const handleMouseMove = (
 				`<strong>${feature.layer.id}</strong><br>${displayName}<br>Matching Posts: ${matchingFacilities.length}`
 			)
 			.addTo(map);
+
+		highlightFeature(map, feature);
 	} else {
 		popup.remove();
+		clearHighlight(map);
+	}
+};
+
+// state-layer以外のフィーチャーをハイライトする関数
+const highlightFeature = (map: MaplibreMap, feature: maplibregl.MapGeoJSONFeature) => {
+	clearHighlight(map);
+
+	// state-layer以外をハイライト対象とする
+	if (feature.layer.id === "state-layer") {
+		return; // state-layerの場合は何もしない
+	}
+
+	// フィーチャーをGeoJSON形式に変換
+	const geometry =
+		feature.geometry.type === "MultiPolygon"
+			? {
+					type: "FeatureCollection",
+					features: feature.geometry.coordinates.map((coords) => ({
+						type: "Feature",
+						geometry: {
+							type: "Polygon",
+							coordinates: coords,
+						},
+						properties: feature.properties,
+					})),
+				}
+			: feature.toJSON();
+
+	// GeoJSONデータを使用してハイライトレイヤーを追加
+	map.addLayer({
+		id: "highlighted-feature",
+		type: "line",
+		source: {
+			type: "geojson",
+			data: geometry,
+		},
+		paint: {
+			"line-color": "#FF0000",
+			"line-width": 3,
+		},
+	});
+};
+
+// ハイライトをクリアする関数
+const clearHighlight = (map: MaplibreMap) => {
+	if (map.getLayer("highlighted-feature")) {
+		map.removeLayer("highlighted-feature");
+		map.removeSource("highlighted-feature");
 	}
 };
 
