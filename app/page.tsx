@@ -1,5 +1,8 @@
 import { Button } from "@mantine/core";
-import Image from "next/image";
+
+// メインカラー：#FFFFFF
+// サブカラー：​#A8D5BA
+// アクセントカラー：#FFA500
 
 export default function Home() {
 	return (
