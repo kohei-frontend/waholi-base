@@ -13,7 +13,7 @@ import {
 	SetFacilities,
 	FilterSearch,
 } from "@/app/types";
-import { Affix, Button } from "@mantine/core";
+import { Button } from "@mantine/core";
 import ContentsCard from "./contentCard";
 import FilterModal from "./filterModal";
 
@@ -181,7 +181,10 @@ const handleMouseMove = (
 
 // state-layer以外のフィーチャーをハイライトする関数
 const highlightFeature = (map: MaplibreMap, feature: maplibregl.MapGeoJSONFeature) => {
-	clearHighlight(map);
+	// ハイライトがすでに存在する場合は何もしない
+	if (map.getLayer("highlighted-feature")) {
+		return;
+	}
 
 	// state-layer以外をハイライト対象とする
 	if (feature.layer.id === "state-layer") {
@@ -355,15 +358,23 @@ const updateMapLayerColors = (map: MaplibreMap, facilities: Facilities) => {
 					: DEFAULT_FILL_COLOR;
 	};
 
+	// 各単語の最初の文字を大文字にする関数
+	const capitalizeWords = (name: string) => {
+		return name
+			.split(" ")
+			.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+			.join(" ");
+	};
+
 	const createColorMapping = (layerType: keyof Facility, formatFn?: (name: string) => string) => {
 		return facilities.reduce((acc: string[], facility) => {
 			let name = "";
 			if (layerType === "state") {
-				name = facility.state.name; // 修正
+				name = facility.state.name;
 			} else if (layerType === "lga") {
-				name = facility.lga.name; // 修正
+				name = facility.lga.name;
 			} else if (layerType === "suburb") {
-				name = facility.suburb.name; // 修正
+				name = facility.suburb.name;
 			}
 
 			if (formatFn) {
@@ -376,7 +387,7 @@ const updateMapLayerColors = (map: MaplibreMap, facilities: Facilities) => {
 		}, []);
 	};
 
-	const stateColorMapping = createColorMapping("state");
+	const stateColorMapping = createColorMapping("state", capitalizeWords);
 	if (stateColorMapping.length > 0) {
 		map.setPaintProperty("state-layer", "fill-color", [
 			"match",
@@ -388,9 +399,7 @@ const updateMapLayerColors = (map: MaplibreMap, facilities: Facilities) => {
 		map.setPaintProperty("state-layer", "fill-color", "#CCCCCC");
 	}
 
-	const lgaColorMapping = createColorMapping("lga", (name) => {
-		return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-	});
+	const lgaColorMapping = createColorMapping("lga", capitalizeWords);
 
 	if (lgaColorMapping.length > 0) {
 		map.setPaintProperty("lga-layer", "fill-color", [
@@ -403,9 +412,7 @@ const updateMapLayerColors = (map: MaplibreMap, facilities: Facilities) => {
 		map.setPaintProperty("lga-layer", "fill-color", "#FF0000");
 	}
 
-	const suburbColorMapping = createColorMapping("suburb", (name) => {
-		return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-	});
+	const suburbColorMapping = createColorMapping("suburb", capitalizeWords);
 
 	if (suburbColorMapping.length > 0) {
 		map.setPaintProperty("suburb-layer", "fill-color", [
