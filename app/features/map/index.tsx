@@ -169,9 +169,7 @@ const handleMouseMove = (
 	if (matchingFacilities.length > 0) {
 		popup
 			.setLngLat(e.lngLat)
-			.setHTML(
-				`<strong>${feature.layer.id}</strong><br>${displayName}<br>Matching Posts: ${matchingFacilities.length}`
-			)
+			.setHTML(`<strong>場所: ${displayName}  [${matchingFacilities.length}件]</strong>`)
 			.addTo(map);
 
 		highlightFeature(map, feature);
