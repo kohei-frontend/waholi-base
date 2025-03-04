@@ -20,7 +20,8 @@ model users {
   nickname              String // ユーザーのニックネーム
   age                   Int // ユーザーの年齢
   gender                String // ユーザーの性別（例: 男性、女性、その他）
-  state                 String // ユーザーの居住州
+  country_id            String //ユーザーの居住国
+  state_id              String // ユーザーの居住州
   plan_type             String // プラン種別（無料 or プレミアム）
   profile_image         String? // プロフィール画像
   notification_settings String? // 通知設定（例: ON/OFF）
@@ -32,6 +33,8 @@ model users {
   posts posts[]
 
   // その他共通機能
+  country    country        @relation(fields: [country_id], references: [id])
+  state    state        @relation(fields: [state_id], references: [id])
   comments      comments[]
   likes         likes[]
   user_tenants  userTenant[]
@@ -61,20 +64,34 @@ model userTenant {
 }
 
 // ─── 地理マスターデータ ─────────────────────────────────────────────
-// jsonファイルから抽出したstate, lga, suburb モデルで管理
+// jsonファイルから抽出したcountry, state, lga, suburb モデルで管理
+
+model country {
+  id         String   @id @default(uuid()) // 主キー。各国 の一意な識別子
+  name       String // 国名
+  created_at DateTime @default(now()) // 作成日
+  updated_at DateTime @updatedAt // 更新日
+
+  user       users[]
+  states     state[]
+  facility facilities[]
+}
 
 model state {
   id         String   @id @default(uuid()) // 主キー。各 state の一意な識別子
+  country_id String //外部キー、所属する country の id
   name       String // 州の名称（例: "New South Wales"）
   created_at DateTime @default(now()) // 作成日
   updated_at DateTime @updatedAt // 更新日
 
+  user       users[]
   lgas     lga[]
+  country    country        @relation(fields: [country_id], references: [id], onDelete: Cascade)
   facility facilities[]
 }
 
 model lga {
-  id         String   @id @default(uuid()) // 主キー。各 LGA の一意な識別子
+  id         String   @id
   state_id   String // 外部キー。所属する state の id
   name       String // LGA の名称
   created_at DateTime @default(now()) // 作成日
@@ -86,7 +103,7 @@ model lga {
 }
 
 model suburbs {
-  id         String   @id @default(uuid()) // 主キー。各 suburb の一意な識別子
+  id         String  @id
   lga_id     String // 外部キー。所属する LGA の id
   name       String // suburb の名称
   created_at DateTime @default(now()) // 作成日
@@ -104,22 +121,27 @@ enum FacilityType {
 
 model facilities {
   id        String       @id @default(uuid())
+  country_id  String
   state_id  String
   lga_id    String
   suburb_id String
   type      FacilityType
   name      String
+  address   String
+  hp       String
 
   // 各マスターとのリレーション
+  country  country   @relation(fields: [country_id], references: [id], onDelete: Cascade)
   state  state   @relation(fields: [state_id], references: [id], onDelete: Cascade)
   lga    lga     @relation(fields: [lga_id], references: [id], onDelete: Cascade)
   suburb suburbs @relation(fields: [suburb_id], references: [id], onDelete: Cascade)
 
   posts posts[]
 
-  // @@index([lga]) // LGA（地方自治体）での検索を高速化
-  // @@index([suburb]) // サバーブでの検索を高速化
-  // @@index([state, lga, suburb]) // 複数条件検索を高速化
+  @@index([state_id]) // STATEでの検索を高速化
+  @@index([lga_id]) // LGA（地方自治体）での検索を高速化
+  @@index([suburb_id]) // サバーブでの検索を高速化
+  @@index([state_id, lga_id, suburb_id]) // 複数条件検索を高速化
 
   // 同一 state, lga, suburb 内で、同じ施設（name と type の組み合わせ）の重複登録を防止
   @@unique([state_id, lga_id, suburb_id, name, type])

@@ -37,6 +37,15 @@ export type UserTenant = {
 	tenant: Tenant;
 };
 
+export type Country = {
+	id: string;
+	name: string;
+	created_at: Date;
+	updated_at: Date;
+	state: State[];
+	facility: Facility[];
+};
+
 export type State = {
 	id: string;
 	name: string;
@@ -74,6 +83,7 @@ export enum FacilityType {
 
 export type Facility = {
 	id: string;
+	country_id: string;
 	state_id: string;
 	lga_id: string;
 	suburb_id: string;
@@ -272,6 +282,9 @@ export type FilterSearch = {
 
 // whereOptionsの型定義
 export type whereCondition = {
+	country?: {
+		id: string;
+	};
 	posts?: {
 		some?: {
 			AND?: Array<{
@@ -287,6 +300,7 @@ export type whereCondition = {
 };
 
 export type IncludeOptions = {
+	country: boolean;
 	state: boolean;
 	lga: boolean;
 	suburb: boolean;
