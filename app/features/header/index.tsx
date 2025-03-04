@@ -29,18 +29,21 @@ const countries = [
 		title: "オーストラリア",
 		description: "例：オーストラリアでのワーホリマップ",
 		enabled: true,
+		url: "0ac44860-3b58-96ec-f321-0886bc6b9942",
 	},
 	{
 		icon: faLocationDot,
 		title: "ニュージーランド",
 		description: "ニュージーランドでのワーホリマップ",
-		enabled: false,
+		enabled: true,
+		url: "8ead2888-19ab-72b4-72da-31f34c2f1263",
 	},
 	{
 		icon: faLocationDot,
 		title: "カナダ",
 		description: "カナダでのワーホリマップ",
 		enabled: false,
+		url: "",
 	},
 ];
 
@@ -77,9 +80,9 @@ function renderLinks(isLoggedIn: boolean, links: JSX.Element[]) {
 		</>
 	) : (
 		<>
-			<a href="#" className={classes.link}>
+			{/* <a href="#" className={classes.link}>
 				使い方
-			</a>
+			</a> */}
 			<HoverCard width={600} position="bottom" radius="md" shadow="md" withinPortal>
 				<HoverCard.Target>
 					<a href="#" className={classes.link}>
@@ -115,8 +118,13 @@ export function HeaderMenu() {
 		<UnstyledButton
 			className={classes.subLink}
 			key={item.title}
-			disabled={!item.enabled} // リンクが無効の場合はボタンを無効化
-			style={{ color: item.enabled ? "inherit" : "gray" }} // 無効の場合は灰色の文字
+			disabled={!item.enabled}
+			style={{ color: item.enabled ? "inherit" : "gray" }}
+			onClick={() => {
+				if (item.enabled) {
+					window.location.href = item.url; // URLに遷移
+				}
+			}}
 		>
 			<Group wrap="nowrap" align="flex-start">
 				<FontAwesomeIcon icon={item.icon} className="mr-2" />
