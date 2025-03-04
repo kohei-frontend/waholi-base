@@ -1,11 +1,18 @@
-export const fetchFacilities = async (params?: {
-	type?: string;
-	wageRange?: [number, number];
-	rating?: number;
-	rentRange?: [number, number];
-}) => {
+export const fetchFacilities = async (
+	params?: {
+		type?: string;
+		wageRange?: [number, number];
+		rating?: number;
+		rentRange?: [number, number];
+	},
+	countryId?: string
+) => {
 	try {
 		const queryParams = new URLSearchParams();
+
+		if (countryId) {
+			queryParams.append("countryId", countryId); // countryIdをクエリパラメータに追加
+		}
 
 		switch (params?.type) {
 			case "WORKPLACE":

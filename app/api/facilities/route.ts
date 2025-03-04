@@ -46,12 +46,14 @@ export const GET = async (request: Request) => {
 		const url = new URL(request.url);
 
 		const facilityId = url.searchParams.get("facility_id");
+		const countryId = url.searchParams.get("countryId");
 
 		if (facilityId) {
 			// 特定のfacility_idに基づいてデータを取得
 			const facility = await prisma.facilities.findUnique({
 				where: { id: facilityId },
 				include: {
+					country: true,
 					state: true,
 					lga: true,
 					suburb: true,
@@ -78,9 +80,9 @@ export const GET = async (request: Request) => {
 		const rentMin = url.searchParams.get("rentMin");
 		const rentMax = url.searchParams.get("rentMax");
 		const rating = url.searchParams.get("rating");
-		console.log("それぞれ", type, wageMin, wageMax, rentMin, rentMax, rating);
 
 		const includeOptions: IncludeOptions = {
+			country: true,
 			state: true,
 			lga: true,
 			suburb: true,
@@ -93,6 +95,10 @@ export const GET = async (request: Request) => {
 		};
 
 		const whereOptions: whereCondition = {};
+
+		if (countryId) {
+			whereOptions.country = { id: countryId }; // countryIdを条件に追加
+		}
 
 		if (type === "WORKPLACE" || type === "ACCOMMODATION") {
 			const postType = type.toLowerCase() as PostIncludeType;
@@ -124,7 +130,6 @@ export const GET = async (request: Request) => {
 			}
 			setCondition(type.toLowerCase(), rating, "rating", includeOptions, whereOptions);
 		}
-		console.log("whereOptions", whereOptions);
 
 		const facilities = await prisma.facilities.findMany({
 			where: whereOptions,
