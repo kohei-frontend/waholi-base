@@ -11,37 +11,33 @@ export const fetchFacilities = async (
 		const queryParams = new URLSearchParams();
 
 		if (countryId) {
-			queryParams.append("countryId", countryId); // countryIdをクエリパラメータに追加
+			queryParams.append("countryId", countryId);
 		}
 
-		switch (params?.type) {
-			case "WORKPLACE":
+		// paramsが存在する場合のみクエリパラメータを追加
+		if (params) {
+			if (params.type) {
 				queryParams.append("type", params.type.toString());
-				if (params.rating !== undefined && params.rating !== 0) {
-					queryParams.append("rating", params.rating.toString());
-				}
-				if (params.wageRange) {
-					queryParams.append("wageMin", params.wageRange[0].toString());
-					queryParams.append("wageMax", params.wageRange[1].toString());
-				}
-				break;
-			case "ACCOMMODATION":
-				queryParams.append("type", params.type.toString());
-				if (params.rating !== undefined && params.rating !== 0) {
-					queryParams.append("rating", params.rating.toString());
-				}
-				if (params.rentRange) {
-					queryParams.append("rentMin", params.rentRange[0].toString());
-					queryParams.append("rentMax", params.rentRange[1].toString());
-				}
-				break;
-			default:
-				break;
+			}
+
+			if (params.rating) {
+				queryParams.append("rating", params.rating.toString());
+			}
+
+			if (params.wageRange) {
+				queryParams.append("wageMin", params.wageRange[0].toString());
+				queryParams.append("wageMax", params.wageRange[1].toString());
+			}
+
+			if (params.rentRange) {
+				queryParams.append("rentMin", params.rentRange[0].toString());
+				queryParams.append("rentMax", params.rentRange[1].toString());
+			}
 		}
 
 		const response = await fetch(`/api/facilities?${queryParams.toString()}`);
 		if (!response.ok) {
-			throw new Error("データの取得に失敗しました");
+			throw new Error(`データの取得に失敗しました: ${response.statusText}`);
 		}
 		return await response.json();
 	} catch (error) {
