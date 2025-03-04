@@ -122,7 +122,7 @@ export function HeaderMenu() {
 			style={{ color: item.enabled ? "inherit" : "gray" }}
 			onClick={() => {
 				if (item.enabled) {
-					window.location.href = item.url; // URLに遷移
+					window.location.href = `/map/${item.url}`;
 				}
 			}}
 		>
