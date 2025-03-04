@@ -93,6 +93,9 @@ export type Facility = {
 	lga: LGA;
 	suburb: Suburb;
 	posts: Post[];
+	_count: {
+		posts: number; // postsのカウントを保持
+	};
 };
 
 export type Facilities = Facility[];

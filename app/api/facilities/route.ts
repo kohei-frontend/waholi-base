@@ -73,6 +73,49 @@ export const GET = async (request: Request) => {
 			return NextResponse.json(facility, { status: 200 });
 		}
 
+		// countryIdのみが存在する場合、早期リターン
+		if (
+			countryId &&
+			!url.searchParams.get("type") &&
+			!url.searchParams.get("wageMin") &&
+			!url.searchParams.get("wageMax") &&
+			!url.searchParams.get("rentMin") &&
+			!url.searchParams.get("rentMax") &&
+			!url.searchParams.get("rating")
+		) {
+			const facilities = await prisma.facilities.findMany({
+				where: { country: { id: countryId } },
+				select: {
+					id: true,
+					name: true,
+					_count: {
+						select: { posts: true },
+					},
+					country: {
+						select: {
+							name: true,
+						},
+					},
+					state: {
+						select: {
+							name: true,
+						},
+					},
+					lga: {
+						select: {
+							name: true,
+						},
+					},
+					suburb: {
+						select: {
+							name: true,
+						},
+					},
+				},
+			});
+			return NextResponse.json(facilities || [], { status: 200 });
+		}
+
 		// 既存の条件に基づくデータ取得ロジック
 		const type = url.searchParams.get("type");
 		const wageMin = url.searchParams.get("wageMin");

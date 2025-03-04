@@ -47,7 +47,7 @@ export default function ContentsCard({
 						<Card.Section className="relative">
 							<div className="relative">
 								<Image
-									src={facility.posts[0]?.images[0]?.url || "/sample1.png"}
+									src="http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg"
 									alt="Modern apartment in Melbourne"
 									width={256}
 									height={192}
@@ -72,7 +72,8 @@ export default function ContentsCard({
 
 						<div className="mt-2">
 							<Text className="font-bold text-lg text-gray-900">
-								{facility.name} ({facility.posts.length} posts)
+								{facility.name} ({facility._count?.posts ?? facility.posts.length}{" "}
+								posts)
 							</Text>
 							<Divider my="sm" />
 							<div className="flex items-center mt-1">
