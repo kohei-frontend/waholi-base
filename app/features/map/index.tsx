@@ -16,167 +16,27 @@ import {
 import { Button } from "@mantine/core";
 import ContentsCard from "./contentCard";
 import FilterModal from "./filterModal";
-
-// PMTILESを環境変数で使用
-const pmtilesUrl = process.env.NEXT_PUBLIC_PMTILES_URL as string;
+import { mapConfig } from "./mapConfig";
 
 // マップの背景色を定義
 const DEFAULT_FILL_COLOR = "#CCCCCC";
 const HIGH_POST_COUNT_COLOR = "#FF0000";
 const MEDIUM_POST_COUNT_COLOR = "#FFA500";
 const LOW_POST_COUNT_COLOR = "#00FF00";
-const tilesUrl = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+const DEFAULT_COUNTRY = "0ac44860-3b58-96ec-f321-0886bc6b9942"; //オーストラリア国id
 
 // 投稿データをロードする関数
 const loadFacilities = async (
 	SetFacilities: SetFacilities,
 	setFilteredFacilities: React.Dispatch<React.SetStateAction<Facilities>>,
-	params?: { type?: string; wage?: number; rating?: number; rent?: number }
+	params?: { type?: string; wage?: number; rating?: number; rent?: number },
+	countryId?: string
 ) => {
 	// APIから投稿データを取得し、状態を更新する
-	const data = await fetchFacilities(params);
+	const data = await fetchFacilities(params, countryId);
 	console.log("data", data);
 	SetFacilities(data);
 	setFilteredFacilities(data); // 追加: フィルタされた投稿を更新
-};
-
-// 地図の初期化を行う関数
-const initializeMap = (
-	mapContainerRef: MapContainerRef,
-	mapRef: React.MutableRefObject<Map | null>,
-	pmtilesUrl: string
-) => {
-	const map = createMapInstance(mapContainerRef, pmtilesUrl);
-	mapRef.current = map;
-	return map;
-};
-
-// Maplibre-GLのインスタンスを作成する関数
-const createMapInstance = (mapContainerRef: MapContainerRef, pmtilesUrl: string) => {
-	const protocol = new pmtiles.Protocol();
-	maplibregl.addProtocol("pmtiles", protocol.tile);
-	const isMobile = window.innerWidth <= 768;
-
-	return new maplibregl.Map({
-		container: mapContainerRef.current as HTMLElement,
-		center: [133.7751, -25.2744],
-		zoom: isMobile ? 3 : 4, // モバイルの場合はズームレベルを変更
-		style: createMapStyle(pmtilesUrl) as maplibregl.StyleSpecification,
-	});
-};
-
-// 地図のスタイルを作成する関数
-const createMapStyle = (pmtilesUrl: string) => ({
-	version: 8,
-	sources: {
-		australia: {
-			type: "raster",
-			tiles: [tilesUrl],
-			tileSize: 256,
-			attribution: "© OpenStreetMap contributors",
-		},
-		pmtiles: {
-			type: "vector",
-			url: `pmtiles://${pmtilesUrl}`,
-			attribution: "© Your Attribution Here",
-		},
-	},
-	layers: createMapLayers(),
-});
-
-// 地図のレイヤーを作成する関数
-const createMapLayers = () => [
-	{
-		id: "background",
-		type: "raster",
-		source: "australia",
-	},
-	{
-		id: "state-layer",
-		source: "pmtiles",
-		"source-layer": "state",
-		type: "fill",
-		paint: {
-			"fill-color": "#f28cb1",
-			"fill-opacity": 0.6,
-		},
-		minzoom: 0,
-		maxzoom: 5,
-	},
-	{
-		id: "lga-layer",
-		source: "pmtiles",
-		"source-layer": "lga",
-		type: "fill",
-		paint: {
-			"fill-color": "#00bcd4",
-			"fill-opacity": 0.6,
-		},
-		minzoom: 5,
-		maxzoom: 9,
-	},
-	{
-		id: "suburb-layer",
-		source: "pmtiles",
-		"source-layer": "suburb",
-		type: "fill",
-		paint: {
-			"fill-color": "#4caf50",
-			"fill-opacity": 0.6,
-		},
-		minzoom: 9,
-		maxzoom: 11,
-	},
-];
-
-// ポップアップを設定する関数
-const setupPopup = (map: MaplibreMap, facilities: Facilities) => {
-	const popup = new maplibregl.Popup({
-		closeButton: false,
-		closeOnClick: false,
-	});
-
-	map.on("mousemove", (e: { point: maplibregl.Point; lngLat: maplibregl.LngLatLike }) =>
-		handleMouseMove(e, map, popup, facilities)
-	);
-
-	return popup;
-};
-
-// マウス移動時の処理を行う関数
-const handleMouseMove = (
-	e: { point: maplibregl.Point; lngLat: maplibregl.LngLatLike },
-	map: MaplibreMap,
-	popup: maplibregl.Popup,
-	facilities: Facilities
-) => {
-	const features = map.queryRenderedFeatures(e.point, {
-		layers: ["state-layer", "lga-layer", "suburb-layer"],
-	});
-	if (!features.length) {
-		popup.remove();
-		clearHighlight(map);
-		return;
-	}
-
-	const feature = features[0];
-	// console.log("feature", feature);
-	const { matchingFacilities, displayName } = getMatchingFacilitiesAndDisplayName(
-		feature,
-		facilities
-	);
-
-	if (matchingFacilities.length > 0) {
-		popup
-			.setLngLat(e.lngLat)
-			.setHTML(`<strong>場所: ${displayName}  [${matchingFacilities.length}件]</strong>`)
-			.addTo(map);
-
-		highlightFeature(map, feature);
-	} else {
-		popup.remove();
-		clearHighlight(map);
-	}
 };
 
 // state-layer以外のフィーチャーをハイライトする関数
@@ -230,31 +90,6 @@ const clearHighlight = (map: MaplibreMap) => {
 	}
 };
 
-// フィーチャーに一致する投稿と表示名を取得する関数
-const getMatchingFacilitiesAndDisplayName = (
-	feature: maplibregl.MapGeoJSONFeature,
-	facilities: Facilities
-) => {
-	let matchingFacilities: Facility[] = [];
-	let displayName = "";
-
-	if (feature.layer.id === "state-layer") {
-		const stateName = feature.properties.STATE_NAME;
-		matchingFacilities = facilities.filter((facility) => facility.state.name === stateName); // 修正
-		displayName = stateName;
-	} else if (feature.layer.id === "lga-layer") {
-		const lgaName = feature.properties.lga_name.replace(/^\["|"\]$/g, "");
-		matchingFacilities = facilities.filter((facility) => facility.lga.name === lgaName); // 修正
-		displayName = lgaName;
-	} else if (feature.layer.id === "suburb-layer") {
-		const suburbName = feature.properties.suburb;
-		matchingFacilities = facilities.filter((facility) => facility.suburb.name === suburbName); // 修正
-		displayName = suburbName;
-	}
-
-	return { matchingFacilities, displayName };
-};
-
 // 地図にレイヤーを追加する関数
 const addLayersToMap = (map: MaplibreMap) => {
 	const layers = [
@@ -290,7 +125,10 @@ const disableMapZoom = (map: MaplibreMap) => {
 };
 
 // 地図のクリックイベントを設定する関数
-const setupMapClickEvents = (map: MaplibreMap) => {
+const setupMapClickEvents = (map: MaplibreMap, countryId: string) => {
+	const countryConfig = mapConfig[countryId] || mapConfig[DEFAULT_COUNTRY]; // デフォルトはオーストラリア
+	const isMobile = window.innerWidth <= 768;
+
 	map.on("click", (e: { point: maplibregl.Point; lngLat: maplibregl.LngLat }) => {
 		const features = map.queryRenderedFeatures(e.point, {
 			layers: ["state-layer", "lga-layer", "suburb-layer"],
@@ -311,19 +149,18 @@ const setupMapClickEvents = (map: MaplibreMap) => {
 		(coordinates as [number, number][]).forEach((coord) => {
 			bounds.extend(coord);
 		});
-
-		const isMobile = window.innerWidth <= 768;
+		// console.log("feature", feature);
 
 		if (feature.layer.id === "state-layer") {
 			map.easeTo({
 				center: e.lngLat,
-				zoom: isMobile ? 8 : 7, // モバイルの場合はズームレベルを変更
+				zoom: isMobile ? countryConfig.stateZoom.mobile : countryConfig.stateZoom.desktop, // 修正
 				duration: 1000,
 			});
 		} else if (feature.layer.id === "lga-layer") {
 			map.easeTo({
 				center: e.lngLat,
-				zoom: isMobile ? 10 : 10, // モバイルの場合はズームレベルを変更
+				zoom: isMobile ? countryConfig.lgaZoom.mobile : countryConfig.lgaZoom.desktop, // 修正
 				duration: 1000,
 			});
 		}
@@ -331,7 +168,9 @@ const setupMapClickEvents = (map: MaplibreMap) => {
 };
 
 // レイヤーの色を更新する関数
-const updateMapLayerColors = (map: MaplibreMap, facilities: Facilities) => {
+const updateMapLayerColors = (map: MaplibreMap, facilities: Facilities, countryId: string) => {
+	const countryConfig = mapConfig[countryId] || mapConfig[DEFAULT_COUNTRY];
+
 	const normalizeName = (name: string) => {
 		return name.replace(/\s+/g, "").replace(/[()]/g, "").toLowerCase();
 	};
@@ -349,9 +188,9 @@ const updateMapLayerColors = (map: MaplibreMap, facilities: Facilities) => {
 			return false;
 		}).length;
 
-		return facilityCount > 40
+		return facilityCount > 7
 			? HIGH_POST_COUNT_COLOR
-			: facilityCount > 8
+			: facilityCount > 2
 				? MEDIUM_POST_COUNT_COLOR
 				: facilityCount > 0
 					? LOW_POST_COUNT_COLOR
@@ -362,7 +201,17 @@ const updateMapLayerColors = (map: MaplibreMap, facilities: Facilities) => {
 	const capitalizeWords = (name: string) => {
 		return name
 			.split(" ")
-			.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+			.map((word, index) => {
+				// "of"は小文字のままにする
+				if (word.toLowerCase() === "of" && index !== 0) {
+					return word.toLowerCase();
+				}
+				// ハイフンで区切られた単語を大文字にする
+				return word
+					.split("-")
+					.map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+					.join("-");
+			})
 			.join(" ");
 	};
 
@@ -391,7 +240,7 @@ const updateMapLayerColors = (map: MaplibreMap, facilities: Facilities) => {
 	if (stateColorMapping.length > 0) {
 		map.setPaintProperty("state-layer", "fill-color", [
 			"match",
-			["get", "STATE_NAME"],
+			["get", countryConfig.stateProperty],
 			...stateColorMapping,
 			DEFAULT_FILL_COLOR,
 		]);
@@ -404,7 +253,7 @@ const updateMapLayerColors = (map: MaplibreMap, facilities: Facilities) => {
 	if (lgaColorMapping.length > 0) {
 		map.setPaintProperty("lga-layer", "fill-color", [
 			"match",
-			["get", "lga_name"],
+			["get", countryConfig.lgaProperty],
 			...lgaColorMapping,
 			DEFAULT_FILL_COLOR,
 		]);
@@ -417,7 +266,7 @@ const updateMapLayerColors = (map: MaplibreMap, facilities: Facilities) => {
 	if (suburbColorMapping.length > 0) {
 		map.setPaintProperty("suburb-layer", "fill-color", [
 			"match",
-			["get", "suburb"],
+			["get", countryConfig.suburbProperty],
 			...suburbColorMapping,
 			DEFAULT_FILL_COLOR,
 		]);
@@ -445,7 +294,7 @@ const toggleLayerVisibility = (map: MaplibreMap, e: { point: maplibregl.PointLik
 	}
 };
 
-export default function MapComponent() {
+export default function MapComponent({ countryId }: { countryId: string }) {
 	const mapContainerRef = useRef<HTMLDivElement | null>(null);
 	const mapRef = useRef<Map | null>(null);
 	const [facilities, setFacilities] = useState<Facilities>([]);
@@ -453,6 +302,8 @@ export default function MapComponent() {
 	const [currentLayer, setCurrentLayer] = useState<string>("州"); // 初期状態を'州'に設定
 	const [filteredFacilities, setFilteredFacilities] = useState<Facilities>([]); // フィルタされた投稿を管理する状態を追加
 	const [showFilters, setShowFilters] = useState(false); // フィルターモーダルの表示状態を管理
+
+	const countryConfig = mapConfig[countryId] || mapConfig["au"]; // デフォルトはオーストラリア
 
 	const handleFacilityClick = async (id: string) => {
 		try {
@@ -467,7 +318,7 @@ export default function MapComponent() {
 
 	const handleApplyFilters = (filters: FilterSearch) => {
 		setShowFilters(false);
-		loadFacilities(setFacilities, setFilteredFacilities, filters); // フィルターを適用してAPIを呼び出す
+		loadFacilities(setFacilities, setFilteredFacilities, filters, countryId); // フィルターを適用してAPIを呼び出す
 	};
 
 	const resetToInitialLayer = () => {
@@ -483,7 +334,7 @@ export default function MapComponent() {
 		// ズームと中心を初期状態に戻す
 		const isMobile = window.innerWidth <= 768;
 		map.easeTo({
-			center: [133.7751, -25.2744], // 初期の中心座標
+			center: countryConfig.center,
 			zoom: isMobile ? 3 : 4, // 初期のズームレベル
 			duration: 1000,
 		});
@@ -495,24 +346,210 @@ export default function MapComponent() {
 		setFilteredFacilities(facilities);
 	};
 
+	// 地図の初期化を行う関数
+	const initializeMap = (
+		mapContainerRef: MapContainerRef,
+		mapRef: React.MutableRefObject<Map | null>,
+		pmtilesUrl: string,
+		countryId: string
+	) => {
+		const map = createMapInstance(mapContainerRef, pmtilesUrl, countryId);
+		mapRef.current = map;
+		return map;
+	};
+
+	// 地図のレイヤーを作成する関数
+	const createMapLayers = (countryId: string) => {
+		const countryConfig = mapConfig[countryId] || mapConfig[DEFAULT_COUNTRY]; // デフォルトはオーストラリア
+
+		return [
+			{
+				id: "background",
+				type: "raster",
+				source: countryConfig.name, // 動的にソースを設定
+			},
+			{
+				id: "state-layer",
+				source: "pmtiles",
+				"source-layer": "state",
+				type: "fill",
+				paint: {
+					"fill-color": "#f28cb1",
+					"fill-opacity": 0.6,
+				},
+				minzoom: 0,
+				maxzoom: 5,
+			},
+			{
+				id: "lga-layer",
+				source: "pmtiles",
+				"source-layer": "lga",
+				type: "fill",
+				paint: {
+					"fill-color": "#00bcd4",
+					"fill-opacity": 0.6,
+				},
+				minzoom: 5,
+				maxzoom: 9,
+			},
+			{
+				id: "suburb-layer",
+				source: "pmtiles",
+				"source-layer": "suburb",
+				type: "fill",
+				paint: {
+					"fill-color": "#4caf50",
+					"fill-opacity": 0.6,
+				},
+				minzoom: 9,
+				maxzoom: 11,
+			},
+		];
+	};
+
+	// Maplibre-GLのインスタンスを作成する関数
+	const createMapInstance = (
+		mapContainerRef: MapContainerRef,
+		pmtilesUrl: string,
+		countryId: string // countryIdを追加
+	) => {
+		const protocol = new pmtiles.Protocol();
+		maplibregl.addProtocol("pmtiles", protocol.tile);
+		const isMobile = window.innerWidth <= 768;
+
+		const countryConfig = mapConfig[countryId] || mapConfig[DEFAULT_COUNTRY]; // countryIdに基づいて設定を取得
+
+		return new maplibregl.Map({
+			container: mapContainerRef.current as HTMLElement,
+			center: countryConfig.center,
+			zoom: isMobile ? countryConfig.zoomLevel - 1 : countryConfig.zoomLevel,
+			style: createMapStyle(pmtilesUrl, countryId) as maplibregl.StyleSpecification, // countryIdを渡す
+		});
+	};
+
+	// 地図のスタイルを作成する関数
+	const createMapStyle = (pmtilesUrl: string, countryId: string) => ({
+		version: 8,
+		sources: {
+			[countryConfig.name]: {
+				type: "raster",
+				tiles: [countryConfig.tileUrl],
+				tileSize: 256,
+				attribution: "© OpenStreetMap contributors",
+			},
+			pmtiles: {
+				type: "vector",
+				url: `pmtiles://${pmtilesUrl}`,
+				attribution: "© Your Attribution Here",
+			},
+		},
+		layers: createMapLayers(countryId), // countryIdを渡す
+	});
+
+	// フィーチャーに一致する投稿と表示名を取得する関数
+	const getMatchingFacilitiesAndDisplayName = (
+		feature: maplibregl.MapGeoJSONFeature,
+		facilities: Facilities,
+		countryId: string
+	) => {
+		let matchingFacilities: Facility[] = [];
+		let displayName = "";
+
+		const countryConfig = mapConfig[countryId] || mapConfig[DEFAULT_COUNTRY];
+
+		if (feature.layer.id === "state-layer") {
+			const stateName = feature.properties[countryConfig.stateProperty];
+			matchingFacilities = facilities.filter((facility) => facility.state.name === stateName); // 修正
+			displayName = stateName;
+		} else if (feature.layer.id === "lga-layer") {
+			const lgaName = feature.properties[countryConfig.lgaProperty].replace(/^\["|"\]$/g, "");
+			matchingFacilities = facilities.filter((facility) => facility.lga.name === lgaName); // 修正
+			displayName = lgaName;
+		} else if (feature.layer.id === "suburb-layer") {
+			const suburbName = feature.properties[countryConfig.suburbProperty];
+			matchingFacilities = facilities.filter(
+				(facility) => facility.suburb.name === suburbName
+			); // 修正
+			displayName = suburbName;
+		}
+
+		return { matchingFacilities, displayName };
+	};
+
+	// マウス移動時の処理を行う関数
+	const handleMouseMove = (
+		e: { point: maplibregl.Point; lngLat: maplibregl.LngLatLike },
+		map: MaplibreMap,
+		popup: maplibregl.Popup,
+		facilities: Facilities
+	) => {
+		const features = map.queryRenderedFeatures(e.point, {
+			layers: ["state-layer", "lga-layer", "suburb-layer"],
+		});
+		if (!features.length) {
+			popup.remove();
+			clearHighlight(map);
+			return;
+		}
+
+		const feature = features[0];
+		// console.log("feature", feature);
+		const { matchingFacilities, displayName } = getMatchingFacilitiesAndDisplayName(
+			feature,
+			facilities,
+			countryId
+		);
+
+		if (matchingFacilities.length > 0) {
+			popup
+				.setLngLat(e.lngLat)
+				.setHTML(`<strong>場所: ${displayName}  [${matchingFacilities.length}件]</strong>`)
+				.addTo(map);
+
+			highlightFeature(map, feature);
+		} else {
+			popup.remove();
+			clearHighlight(map);
+		}
+	};
+
+	// ポップアップを設定する関数
+	const setupPopup = (map: MaplibreMap, facilities: Facilities) => {
+		const popup = new maplibregl.Popup({
+			closeButton: false,
+			closeOnClick: false,
+		});
+
+		map.on("mousemove", (e: { point: maplibregl.Point; lngLat: maplibregl.LngLatLike }) =>
+			handleMouseMove(e, map, popup, facilities)
+		);
+
+		return popup;
+	};
+
 	useEffect(() => {
 		// 投稿データをロードする
-		loadFacilities(setFacilities, setFilteredFacilities); // 初期状態で全データを表示
+		loadFacilities(setFacilities, setFilteredFacilities, undefined, countryId); // 初期状態で全データを表示
 	}, []);
 
 	useEffect(() => {
 		if (!mapContainerRef.current) return;
 
 		// 地図とポップアップを初期化する
-		const map = initializeMap(mapContainerRef, mapRef, pmtilesUrl);
-		const popup = setupPopup(map, facilities);
+		const map = initializeMap(mapContainerRef, mapRef, countryConfig.pmtilesUrl, countryId);
 
 		const handleMapLoad = () => {
 			addLayersToMap(map);
 			disableMapZoom(map);
-			setupMapClickEvents(map);
+			setupMapClickEvents(map, countryId);
 			// 初期状態のレイヤーを表示
 			setCurrentLayer("州");
+
+			// スタイルが読み込まれた後にmousemoveイベントを設定
+			const popup = setupPopup(map, facilities);
+			map.on("mousemove", (e: { point: maplibregl.Point; lngLat: maplibregl.LngLatLike }) =>
+				handleMouseMove(e, map, popup, facilities)
+			);
 		};
 
 		map.once("load", handleMapLoad);
@@ -522,9 +559,8 @@ export default function MapComponent() {
 		return () => {
 			// コンポーネントのクリーンアップ時に地図とポップアップを削除する
 			map.remove();
-			popup.remove();
 		};
-	}, [facilities]);
+	}, [facilities, countryId]);
 
 	useEffect(() => {
 		if (!mapRef.current) return;
@@ -533,7 +569,7 @@ export default function MapComponent() {
 
 		const updateLayerColors = () => {
 			// 投稿数に応じた色を更新する
-			updateMapLayerColors(map, facilities);
+			updateMapLayerColors(map, facilities, countryId);
 		};
 
 		const handleClick = (e: { point: maplibregl.PointLike }) => {
@@ -548,7 +584,8 @@ export default function MapComponent() {
 				const feature = features[0];
 				const { matchingFacilities } = getMatchingFacilitiesAndDisplayName(
 					feature,
-					facilities
+					facilities,
+					countryId
 				);
 				setFilteredFacilities(matchingFacilities); // フィルタされた投稿を状態に設定
 
