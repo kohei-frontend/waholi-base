@@ -179,11 +179,11 @@ const updateMapLayerColors = (map: MaplibreMap, facilities: Facilities, countryI
 		const normalizedName = normalizeName(name);
 		const facilityCount = facilities.filter((facility) => {
 			if (type === "state") {
-				return normalizeName(facility.state.name) === normalizedName;
+				return normalizeName(facility.state) === normalizedName;
 			} else if (type === "lga") {
-				return normalizeName(facility.lga.name) === normalizedName;
+				return normalizeName(facility.lga) === normalizedName;
 			} else if (type === "suburb") {
-				return normalizeName(facility.suburb.name) === normalizedName;
+				return normalizeName(facility.suburb) === normalizedName;
 			}
 			return false;
 		}).length;
@@ -219,11 +219,11 @@ const updateMapLayerColors = (map: MaplibreMap, facilities: Facilities, countryI
 		return facilities.reduce((acc: string[], facility) => {
 			let name = "";
 			if (layerType === "state") {
-				name = facility.state.name;
+				name = facility.state;
 			} else if (layerType === "lga") {
-				name = facility.lga.name;
+				name = facility.lga;
 			} else if (layerType === "suburb") {
-				name = facility.suburb.name;
+				name = facility.suburb;
 			}
 
 			if (formatFn) {
@@ -459,17 +459,15 @@ export default function MapComponent({ countryId }: { countryId: string }) {
 
 		if (feature.layer.id === "state-layer") {
 			const stateName = feature.properties[countryConfig.stateProperty];
-			matchingFacilities = facilities.filter((facility) => facility.state.name === stateName); // 修正
+			matchingFacilities = facilities.filter((facility) => facility.state === stateName);
 			displayName = stateName;
 		} else if (feature.layer.id === "lga-layer") {
 			const lgaName = feature.properties[countryConfig.lgaProperty].replace(/^\["|"\]$/g, "");
-			matchingFacilities = facilities.filter((facility) => facility.lga.name === lgaName); // 修正
+			matchingFacilities = facilities.filter((facility) => facility.lga === lgaName);
 			displayName = lgaName;
 		} else if (feature.layer.id === "suburb-layer") {
 			const suburbName = feature.properties[countryConfig.suburbProperty];
-			matchingFacilities = facilities.filter(
-				(facility) => facility.suburb.name === suburbName
-			); // 修正
+			matchingFacilities = facilities.filter((facility) => facility.suburb === suburbName);
 			displayName = suburbName;
 		}
 

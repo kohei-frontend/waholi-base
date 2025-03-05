@@ -3,6 +3,7 @@ export type User = {
 	nickname: string;
 	age: number;
 	gender: string;
+	country_id: string;
 	state: string;
 	plan_type: string;
 	profile_image?: string;
@@ -84,14 +85,14 @@ export enum FacilityType {
 export type Facility = {
 	id: string;
 	country_id: string;
-	state_id: string;
-	lga_id: string;
-	suburb_id: string;
+	state: string;
+	lga: string;
+	suburb: string;
 	type: FacilityType;
 	name: string;
-	state: State;
-	lga: LGA;
-	suburb: Suburb;
+	image: string;
+	address: string;
+	hp: string;
 	posts: Post[];
 	_count: {
 		posts: number; // postsのカウントを保持
@@ -114,7 +115,7 @@ export type Post = {
 	deleted_at?: Date;
 	facility: Facility;
 	user: User;
-	type: PostType;
+	type: string;
 	workplace?: Workplace;
 	accommodation?: Accommodation;
 	comments: Comment[];
@@ -218,56 +219,6 @@ export type Notification = {
 
 export type SetFacilities = (facilities: Facility[]) => void;
 
-// export type Locations = Location[];
-
-// export type Image = {
-//     id: string;
-//     post_id: string;
-//     url: string;
-//     created_at: string;
-//     deleted_at: string | null;
-// };
-
-// export type Workplace = {
-//     post_id: string;
-//     wage: number;
-//     atmosphere: string[];
-//     rating: number;
-//     comment: string;
-// };
-
-// export type Accommodation = {
-//     post_id: string;
-//     rent: number;
-//     setup: string[];
-//     rating: number;
-//     comment: string;
-// };
-
-// export type PostDetail = {
-//     id: string;
-//     location_id: string;
-//     post_type: string;
-//     user_id: string;
-//     created_at: string;
-//     updated_at: string;
-//     deleted_at: string | null;
-//     image: Image[];
-//     workplace: Workplace | null;
-//     accommodation: Accommodation | null;
-// };
-
-// export type Location = {
-//     id: string;
-//     name: string;
-//     lga: string;
-//     state: string;
-//     suburb: string;
-//     created_at: string;
-//     updated_at: string;
-//     posts: PostDetail[];
-// };
-
 export type SetLocations = (locations: Location[]) => void;
 
 export type MapContainerRef = React.RefObject<HTMLDivElement | null>;
@@ -304,9 +255,6 @@ export type whereCondition = {
 
 export type IncludeOptions = {
 	country: boolean;
-	state: boolean;
-	lga: boolean;
-	suburb: boolean;
 	posts: {
 		include: {
 			images: boolean;

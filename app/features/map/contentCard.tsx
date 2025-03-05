@@ -47,7 +47,7 @@ export default function ContentsCard({
 						<Card.Section className="relative">
 							<div className="relative">
 								<Image
-									src="http://127.0.0.1:54321/storage/v1/object/public/waholi-base/post-images/workplace/1.jpeg"
+									src={facility.image}
 									alt="Modern apartment in Melbourne"
 									width={256}
 									height={192}
@@ -79,8 +79,7 @@ export default function ContentsCard({
 							<div className="flex items-center mt-1">
 								<FontAwesomeIcon icon={faLocationDot} className="mr-2" />
 								<Text className="text-sm text-gray-500 ml-2">
-									{facility.suburb.name}, {facility.lga.name} in{" "}
-									{facility.state.name}
+									{facility.suburb}, {facility.lga} in {facility.state}
 								</Text>
 							</div>
 						</div>

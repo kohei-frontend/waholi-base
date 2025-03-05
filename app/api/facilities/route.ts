@@ -52,11 +52,12 @@ export const GET = async (request: Request) => {
 			// 特定のfacility_idに基づいてデータを取得
 			const facility = await prisma.facilities.findUnique({
 				where: { id: facilityId },
-				include: {
+				select: {
 					country: true,
 					state: true,
 					lga: true,
 					suburb: true,
+					type: true,
 					posts: {
 						include: {
 							images: true,
@@ -96,21 +97,10 @@ export const GET = async (request: Request) => {
 							name: true,
 						},
 					},
-					state: {
-						select: {
-							name: true,
-						},
-					},
-					lga: {
-						select: {
-							name: true,
-						},
-					},
-					suburb: {
-						select: {
-							name: true,
-						},
-					},
+					state: true,
+					lga: true,
+					suburb: true,
+					image: true,
 				},
 			});
 			return NextResponse.json(facilities || [], { status: 200 });
@@ -126,6 +116,16 @@ export const GET = async (request: Request) => {
 
 		const includeOptions: IncludeOptions = {
 			country: true,
+			posts: {
+				include: {
+					images: true,
+				},
+				where: {},
+			},
+		};
+
+		const selectOptions = {
+			country: true,
 			state: true,
 			lga: true,
 			suburb: true,
@@ -133,7 +133,6 @@ export const GET = async (request: Request) => {
 				include: {
 					images: true,
 				},
-				where: {},
 			},
 		};
 
@@ -176,7 +175,7 @@ export const GET = async (request: Request) => {
 
 		const facilities = await prisma.facilities.findMany({
 			where: whereOptions,
-			include: includeOptions,
+			select: selectOptions,
 		});
 
 		return NextResponse.json(facilities || [], { status: 200 });
