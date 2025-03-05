@@ -28,17 +28,11 @@ const SpaceFeature = ({ facilityData }: { facilityData: Facility }) => {
 	const recruitmentPosts = facilityData.posts
 		.filter((post) => post.type === "RECRUITMENT")
 		.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
 	return (
 		<>
 			{/* Main Image */}
 			<div className="relative h-96">
-				<Image
-					src={facilityData?.posts[0]?.images[0]?.url}
-					alt="Store front"
-					fill
-					className="object-cover"
-				/>
+				<Image src={facilityData.image} alt="Store front" fill className="object-cover" />
 				<div className="absolute top-0 right-0 flex space-x-4 p-4">
 					<button>
 						<FontAwesomeIcon icon={faShareFromSquare} size="lg" />
