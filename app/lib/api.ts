@@ -48,7 +48,6 @@ export const fetchFacilities = async (
 
 // 特定のfacility_idに基づいてデータを取得する関数
 export const fetchFacilityById = async (facilityId: string) => {
-	console.log("facilityId", facilityId);
 	try {
 		const queryParams = new URLSearchParams();
 		queryParams.append("facility_id", facilityId.toString());
