@@ -57,6 +57,7 @@ export const GET = async (request: Request) => {
 					state: true,
 					lga: true,
 					suburb: true,
+					image: true,
 					type: true,
 					posts: {
 						include: {
