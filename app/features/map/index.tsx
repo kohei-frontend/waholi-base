@@ -307,9 +307,7 @@ export default function MapComponent({ countryId }: { countryId: string }) {
 
 	const handleFacilityClick = async (id: string) => {
 		try {
-			const facilityData = await fetchFacilityById(id); // facilityの情報を取得
-			console.log("スペースの詳細データ", facilityData);
-			const url = `/space/${id}`; // 動的URLを作成
+			const url = `/space/${id}`;
 			window.open(url, "_blank"); // 新しいタブで開く
 		} catch (error) {
 			console.error("Failed to fetch facility data", error);
