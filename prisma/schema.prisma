@@ -21,7 +21,7 @@ model users {
   age                   Int // ユーザーの年齢
   gender                String // ユーザーの性別（例: 男性、女性、その他）
   country_id            String //ユーザーの居住国
-  state_id              String // ユーザーの居住州
+  state                 String // ユーザーの居住州
   plan_type             String // プラン種別（無料 or プレミアム）
   profile_image         String? // プロフィール画像
   notification_settings String? // 通知設定（例: ON/OFF）
@@ -34,7 +34,6 @@ model users {
 
   // その他共通機能
   country    country        @relation(fields: [country_id], references: [id])
-  state    state        @relation(fields: [state_id], references: [id])
   comments      comments[]
   likes         likes[]
   user_tenants  userTenant[]
@@ -84,10 +83,8 @@ model state {
   created_at DateTime @default(now()) // 作成日
   updated_at DateTime @updatedAt // 更新日
 
-  user       users[]
   lgas     lga[]
   country    country        @relation(fields: [country_id], references: [id], onDelete: Cascade)
-  facility facilities[]
 }
 
 model lga {
@@ -99,7 +96,6 @@ model lga {
 
   state    state        @relation(fields: [state_id], references: [id], onDelete: Cascade)
   suburbs  suburbs[]
-  facility facilities[]
 }
 
 model suburbs {
@@ -110,47 +106,30 @@ model suburbs {
   updated_at DateTime @updatedAt // 更新日
 
   lga      lga          @relation(fields: [lga_id], references: [id], onDelete: Cascade)
-  facility facilities[]
-}
-
-// ─── 施設関連 ─────────────────────────────────────────────
-enum FacilityType {
-  WORKPLACE
-  ACCOMMODATION
 }
 
 model facilities {
   id        String       @id @default(uuid())
-  country_id  String
-  state_id  String
-  lga_id    String
-  suburb_id String
-  type      FacilityType
+  country_id   String
+  state     String
+  lga       String
+  suburb    String
+  type      String
   name      String
+  image     String
   address   String
-  hp       String
+  hp        String
 
-  // 各マスターとのリレーション
   country  country   @relation(fields: [country_id], references: [id], onDelete: Cascade)
-  state  state   @relation(fields: [state_id], references: [id], onDelete: Cascade)
-  lga    lga     @relation(fields: [lga_id], references: [id], onDelete: Cascade)
-  suburb suburbs @relation(fields: [suburb_id], references: [id], onDelete: Cascade)
-
   posts posts[]
 
-  @@index([state_id]) // STATEでの検索を高速化
-  @@index([lga_id]) // LGA（地方自治体）での検索を高速化
-  @@index([suburb_id]) // サバーブでの検索を高速化
-  @@index([state_id, lga_id, suburb_id]) // 複数条件検索を高速化
+  @@index([state]) // STATEでの検索を高速化
+  @@index([lga]) // LGA（地方自治体）での検索を高速化
+  @@index([suburb]) // サバーブでの検索を高速化
+  @@index([state, lga, suburb]) // 複数条件検索を高速化
 
   // 同一 state, lga, suburb 内で、同じ施設（name と type の組み合わせ）の重複登録を防止
-  @@unique([state_id, lga_id, suburb_id, name, type])
-}
-
-// ─── 投稿タイプ ─────────────────────────────────────────────
-enum PostType {
-  REVIEW
-  RECRUITMENT
+  @@unique([state, lga, suburb, name, type])
 }
 
 // ─── 共通投稿（レビュー）テーブル ─────────────────────────────────────────────
@@ -161,7 +140,7 @@ model posts {
   created_at  DateTime  @default(now()) // レコード作成日時
   updated_at  DateTime  @updatedAt // レコード更新日時
   deleted_at  DateTime? // 削除日時（論理削除用）
-  type PostType
+  type        String
 
   // リレーション：対象施設と投稿者
   facility facilities @relation(fields: [facility_id], references: [id], onDelete: Cascade)
