@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { fetchFacilityById } from "@/app/lib/api";
 import { Facility } from "@/app/types";
-import SpaceFeature from "@/app/features/space";
+import SpaceFeature from "@/app/_features/space";
 
 export default function Page() {
 	const pathname = usePathname();

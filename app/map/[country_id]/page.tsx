@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { useSearchParams, usePathname, useParams } from "next/navigation";
 
 // dynamic importを使用してMapContainerをクライアントサイドでのみレンダリング
-const Map = dynamic(() => import("../../features/map/index"), {
+const Map = dynamic(() => import("../../_features/map/index"), {
 	ssr: false, // サーバーサイドレンダリングを無効化
 });
 
