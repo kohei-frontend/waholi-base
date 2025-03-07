@@ -3,8 +3,8 @@ import "./globals.css";
 import "@mantine/core/styles.css";
 
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
-import { HeaderMenu } from "./features/header";
-import Footer from "./features/footer";
+import { HeaderMenu } from "./_features/header";
+import Footer from "./_features/footer";
 
 export const metadata: Metadata = {
 	title: "Create Next App",
