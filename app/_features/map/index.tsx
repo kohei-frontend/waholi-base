@@ -17,6 +17,8 @@ import { Button } from "@mantine/core";
 import ContentsCard from "./contentCard";
 import FilterModal from "./filterModal";
 import { mapConfig } from "./mapConfig";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronLeft, faChevronRight, faFilter } from "@fortawesome/free-solid-svg-icons";
 
 // マップの背景色を定義
 const DEFAULT_FILL_COLOR = "#CCCCCC";
@@ -631,29 +633,33 @@ export default function MapComponent({ countryId }: { countryId: string }) {
 				<div ref={mapContainerRef} className="h-full w-full relative">
 					<div className="absolute top-2 left-0 right-0 z-10 flex justify-between px-4">
 						{isSidebarVisible ? (
-							<button
+							<Button
 								onClick={() => setIsSidebarVisible(false)}
 								className="bg-white rounded-full p-2 hover:bg-gray-300 flex items-center"
+								style={{ borderRadius: "32px" }}
 							>
-								＜
-							</button>
+								<FontAwesomeIcon icon={faChevronLeft} />
+							</Button>
 						) : (
-							<button
+							<Button
 								onClick={() => setIsSidebarVisible(true)}
 								className="bg-white rounded-full p-2 hover:bg-gray-300 flex items-center"
+								style={{ borderRadius: "32px" }}
 							>
-								＞ Show list
-							</button>
+								<FontAwesomeIcon icon={faChevronRight} /> Show list
+							</Button>
 						)}
-						<button
+						<Button
 							onClick={() => setShowFilters(true)}
 							className="bg-white px-4 py-2 rounded-lg shadow"
+							style={{ borderRadius: "32px" }}
 						>
-							Show Filters
-						</button>
+							<FontAwesomeIcon icon={faFilter} />
+							Filters
+						</Button>
 						<Button
 							className="bg-white px-4 py-2 rounded-lg shadow"
-							style={{ zIndex: 1000, borderRadius: "32px" }}
+							style={{ borderRadius: "32px" }}
 							onClick={resetToInitialLayer}
 						>
 							{currentLayer}✖
