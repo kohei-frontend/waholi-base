@@ -101,8 +101,8 @@ function renderLinks(isLoggedIn: boolean, links: JSX.Element[]) {
 					</SimpleGrid>
 				</HoverCard.Dropdown>
 			</HoverCard>
-			<a href="#" className={classes.link}>
-				FAQ
+			<a href="/" className={classes.link}>
+				About
 			</a>
 		</>
 	);
@@ -158,7 +158,7 @@ export function HeaderMenu() {
 					/>
 
 					<Group h="100%" gap={0} visibleFrom="sm">
-						<a href="#" className={classes.link}>
+						<a href="/" className={classes.link}>
 							ホーム
 						</a>
 						{renderLinks(isLoggedIn, links)}
