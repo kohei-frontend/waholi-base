@@ -4,8 +4,31 @@
 @tailwind utilities;
 
 :root {
-	--background: #ffffff;
-	--foreground: #171717;
+	/* --background: #ffffff;
+	--foreground: #171717; */
+	--main-color: #ffffff;
+	--sub-color: #a8d5ba;
+	--accent-color: #ffa500;
+	--accent-hover: #ff8c00;
+	--border: 200 20% 99%;
+	--input: 200 20% 99%;
+	--ring: 200 20% 99%;
+	--background: 0 0% 100%;
+	--foreground: 200 50% 3%;
+	--primary: 200 100% 50%;
+	--primary-foreground: 0 0% 100%;
+	--secondary: 200 20% 99%;
+	--secondary-foreground: 200 50% 3%;
+	--destructive: 0 100% 50%;
+	--destructive-foreground: 200 50% 3%;
+	--muted: 200 20% 99%;
+	--muted-foreground: 200 40% 40%;
+	--accent: 200 20% 99%;
+	--accent-foreground: 200 50% 3%;
+	--popover: 0 0% 100%;
+	--popover-foreground: 200 50% 3%;
+	--card: 0 0% 100%;
+	--card-foreground: 200 50% 3%;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,4 +42,60 @@ body {
 	color: var(--foreground);
 	background: var(--background);
 	font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer base {
+	body {
+		@apply bg-main text-foreground;
+	}
+	.bg-main {
+		@apply bg-white;
+	}
+	.bg-accent {
+		background-color: var(--accent-color);
+	}
+}
+
+@layer components {
+	.btn-primary {
+		@apply bg-customAccent text-white font-bold py-3 px-6 rounded-lg shadow-md transition-all duration-300;
+	}
+	.btn-primary:hover {
+		@apply bg-accent-hover shadow-lg;
+	}
+
+	.btn-secondary {
+		@apply bg-sub text-white font-bold py-3 px-6 rounded-lg shadow-md transition-all duration-300;
+	}
+	.btn-secondary:hover {
+		@apply bg-opacity-80 shadow-lg;
+	}
+
+	.section {
+		@apply py-16 px-4 md:px-8 lg:px-16;
+	}
+
+	.container {
+		@apply max-w-7xl mx-auto;
+	}
+
+	.section-title {
+		@apply text-3xl md:text-4xl font-bold mb-8 text-center;
+	}
+
+	.section-subtitle {
+		@apply text-xl md:text-2xl font-medium mb-6 text-center;
+	}
+
+	.card {
+		@apply bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300;
+	}
+}
+
+.green-bg {
+	@apply bg-sub;
+}
+
+.white-bg {
+	@apply bg-main;
 }
