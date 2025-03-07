@@ -102,6 +102,7 @@ export const GET = async (request: Request) => {
 					lga: true,
 					suburb: true,
 					image: true,
+					type: true,
 				},
 			});
 			return NextResponse.json(facilities || [], { status: 200 });
@@ -126,14 +127,20 @@ export const GET = async (request: Request) => {
 		};
 
 		const selectOptions = {
-			country: true,
+			id: true,
+			name: true,
+			country: {
+				select: {
+					name: true,
+				},
+			},
 			state: true,
 			lga: true,
 			suburb: true,
-			posts: {
-				include: {
-					images: true,
-				},
+			image: true,
+			type: true,
+			_count: {
+				select: { posts: true },
 			},
 		};
 
