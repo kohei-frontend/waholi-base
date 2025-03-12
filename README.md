@@ -1,8 +1,8 @@
-# Service A
+# ワーホリベース（仮）
 
 ## Overview
 
-Service A is a platform designed for overseas working holiday participants to visualize local working conditions and accommodation information while enabling real-time information sharing. It utilizes maps to allow users to register, search, rate, and comment on locations.
+ワーホリベース（仮） is a platform designed for overseas working holiday participants to visualize local working conditions and accommodation information while enabling real-time information sharing. It utilizes maps to allow users to register, search, rate, and comment on locations.
 
 🚧 **This service is currently under development.** 🚧
 
