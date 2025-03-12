@@ -1,36 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Service A
 
-## Getting Started
+## Overview
 
-First, run the development server:
+Service A is a platform designed for overseas working holiday participants to visualize local working conditions and accommodation information while enabling real-time information sharing. It utilizes maps to allow users to register, search, rate, and comment on locations.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+🚧 **This service is currently under development.** 🚧
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Key Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Map Display**: View information on workplaces and accommodations on an interactive map.
+- **Posting Feature**: Share experiences about workplaces and accommodations.
+- **Rating System**: Review locations with star ratings and comments.
+- **Search & Filters**: Filter by state, LGA, suburb, hourly wage, rent, and other criteria.
+- **Notification System**: Receive alerts for comments, likes, and post updates.
+- **Like Feature**: Like useful posts to highlight valuable information.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Technology Stack
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Frontend**: Next.js (App Router)
+- **Backend**: Next.js (API Routes)
+- **Database**: Supabase (PostgreSQL)
+- **Map Library**: Leaflet.js
+- **Authentication**: Supabase Auth
+- **Deployment**: Vercel
