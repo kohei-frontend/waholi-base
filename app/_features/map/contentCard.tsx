@@ -72,8 +72,8 @@ export default function ContentsCard({
 
 						<div className="mt-2">
 							<Text className="font-bold text-lg text-gray-900">
-								{facility.name} ({facility._count?.posts ?? facility.posts.length}{" "}
-								posts)
+								SampleData: {facility.name} (
+								{facility._count?.posts ?? facility.posts.length} posts)
 							</Text>
 							<Divider my="sm" />
 							<div className="flex items-center mt-1">

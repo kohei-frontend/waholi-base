@@ -57,7 +57,7 @@ function renderLinks(isLoggedIn: boolean, links: JSX.Element[]) {
 							<Box component="span" mr={5}>
 								ワーホリマップ
 							</Box>
-							<FontAwesomeIcon icon={faLocationDot} className="mr-2" />
+							{/* <FontAwesomeIcon icon={faLocationDot} className="mr-2" /> */}
 						</Center>
 					</a>
 				</HoverCard.Target>
@@ -90,7 +90,7 @@ function renderLinks(isLoggedIn: boolean, links: JSX.Element[]) {
 							<Box component="span" mr={5}>
 								ワーホリマップ
 							</Box>
-							<FontAwesomeIcon icon={faLocationDot} className="mr-2" />
+							{/* <FontAwesomeIcon icon={faLocationDot} className="mr-2" /> */}
 						</Center>
 					</a>
 				</HoverCard.Target>
@@ -164,7 +164,7 @@ export function HeaderMenu() {
 						{renderLinks(isLoggedIn, links)}
 					</Group>
 
-					<Group visibleFrom="sm">
+					{/* <Group visibleFrom="sm">
 						{isLoggedIn ? (
 							<Button onClick={() => setIsLoggedIn(false)}>ログアウト</Button>
 						) : (
@@ -173,7 +173,7 @@ export function HeaderMenu() {
 								<Button>新規登録</Button>
 							</>
 						)}
-					</Group>
+					</Group> */}
 
 					<Burger opened={drawerOpened} onClick={toggleDrawer} hiddenFrom="sm" />
 				</Group>
@@ -228,7 +228,7 @@ export function HeaderMenu() {
 
 					<Divider my="sm" />
 
-					<Group justify="center" grow pb="xl" px="md">
+					{/* <Group justify="center" grow pb="xl" px="md">
 						{isLoggedIn ? (
 							<Button onClick={() => setIsLoggedIn(false)}>ログアウト</Button>
 						) : (
@@ -237,7 +237,7 @@ export function HeaderMenu() {
 								<Button>新規登録</Button>
 							</>
 						)}
-					</Group>
+					</Group> */}
 				</ScrollArea>
 			</Drawer>
 		</Box>

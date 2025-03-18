@@ -57,7 +57,7 @@ export default function Hero() {
 					{/* モバイル表示での背景画像 */}
 					<div className="absolute top-[-50%] inset-0 md:hidden">
 						<Image
-							src="/home/hero2.png"
+							src="/home/map_transparent.png"
 							alt="ワーホリマップのイメージ"
 							fill
 							className="object-cover opacity-10"
