@@ -149,13 +149,14 @@ export function HeaderMenu() {
 		<Box pb={10}>
 			<header className={classes.header}>
 				<Group justify="space-between" h="100%">
-					<Image
+					{/* <Image
 						src={"/sampleLogo.png"}
 						alt="Store front"
 						width="40"
 						height="40"
 						className="object-cover"
-					/>
+					/> */}
+					<div>🚧Currently under development🚧</div>
 
 					<Group h="100%" gap={0} visibleFrom="sm">
 						<a href="/" className={classes.link}>
